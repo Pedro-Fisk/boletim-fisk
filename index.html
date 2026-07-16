@@ -276,9 +276,9 @@
   <div class="card">
     <h2>✍️ Escreva (ou fale) as notas dos alunos <span style="font-size:12px;color:var(--gray);font-weight:600">(0 a 10)</span></h2>
     <p class="hint">Escreva de forma corrida, com a palavra do critério seguida da nota. Você também pode ativar a função de ditado do seu computador e falar as notas. A página lê os números e monta o boletim. Você ajusta qualquer coisa na tela seguinte.</p>
-    <textarea id="notes" placeholder="Ex.: fluência 8, pronúncia 8, vocabulário 6, participação 9, dedicação 7, socialização 8, escuta 8,5, escrita 7, faltas 3"></textarea>
+    <textarea id="notes" placeholder="Ex.: fluência 8, pronúncia 8, vocabulário 6, participação 9, dedicação 7, socialização 8, escuta 8,5, escrita 7 (também aceita por extenso: fluência sete e meio)"></textarea>
     <div class="keyword-help">
-      Palavras reconhecidas: <code>escuta</code> / <code>compreensão auditiva</code> / <code>listening</code> · <code>escrita</code> / <code>written</code> · <code>fluência</code> · <code>pronúncia</code> · <code>vocabulário</code> · <code>participação</code> · <code>dedicação</code> · <code>socialização</code> · <code>faltas</code>. Não achou alguma nota? Digite direto no boletim.
+      Critérios: <code>A · escuta</code> <code>B · escrita</code> <code>C · fluência</code> <code>D · pronúncia</code> <code>E · vocabulário</code> <code>F · participação</code> <code>G · dedicação</code> <code>H · socialização</code>. Não achou alguma nota? Digite direto no boletim.
     </div>
   </div>
 
@@ -325,12 +325,14 @@ function setBimestre(yearStr){
   if(ms){ semSel=ms[1]; document.querySelectorAll('#semToggle button').forEach(x=>x.classList.toggle('active',x.dataset.s===semSel)); }
 }
 document.querySelectorAll('#halfToggle button').forEach(b=>b.onclick=()=>{
+  const was=b.classList.contains('active');
   document.querySelectorAll('#halfToggle button').forEach(x=>x.classList.remove('active'));
-  b.classList.add('active'); halfSel=b.dataset.h;
+  if(was){ halfSel=null; } else { b.classList.add('active'); halfSel=b.dataset.h; }
 });
 document.querySelectorAll('#semToggle button').forEach(b=>b.onclick=()=>{
+  const was=b.classList.contains('active');
   document.querySelectorAll('#semToggle button').forEach(x=>x.classList.remove('active'));
-  b.classList.add('active'); semSel=b.dataset.s;
+  if(was){ semSel=null; } else { b.classList.add('active'); semSel=b.dataset.s; }
 });
 // nome do professor lembrado no navegador (preenche sozinho nos próximos boletins)
 try{ const sp=localStorage.getItem('fisk_prof_name'); if(sp)$('s_teacher').value=sp; }catch(e){}
@@ -358,8 +360,9 @@ function clearAllFields(){
   window.scrollTo(0,0);
 }
 document.querySelectorAll('#periodToggle button').forEach(b=>b.onclick=()=>{
+  const was=b.classList.contains('active');
   document.querySelectorAll('#periodToggle button').forEach(x=>x.classList.remove('active'));
-  b.classList.add('active'); period=b.dataset.p;
+  if(was){ period=null; } else { b.classList.add('active'); period=b.dataset.p; }
 });
 
 /* ============ ESTÁGIOS (autocompletar) — edite com os nomes reais ============ */
@@ -407,6 +410,12 @@ function renderScale(){
 }
 renderScale();
 $('s_name').addEventListener('input',renderScale); // atualiza o nome nas frases
+
+/* limita as notas digitadas no guia a 0-10 na hora */
+document.querySelectorAll('.rg-in').forEach(inp=>inp.addEventListener('input',()=>{
+  const raw=(inp.value||'').replace(',','.'); if(raw==='')return; const n=+raw;
+  if(!isNaN(n)&&(n>10||n<0)) inp.value=String(Math.max(0,Math.min(10,n))).replace('.',',');
+}));
 
 /* Performance excelente: nota 10 em tudo exceto testes, e seleciona a frase 10 */
 const NONTEST_FIELDS=['fluency','pronunciation','vocabulary','participation','dedication','socialization'];
@@ -470,25 +479,35 @@ function lev(a,b){
   }
   return prev[n];
 }
-/* para cada par "palavra + número" no texto, acha o critério mais parecido (com tolerância a typos) */
+/* converte números por extenso em algarismos (para funcionar com o ditado do computador) */
+const NUMW={zero:0,um:1,uma:1,dois:2,duas:2,tres:3,quatro:4,cinco:5,seis:6,sete:7,oito:8,nove:9,dez:10};
+function wordsToNumbers(t){
+  const w='(zero|um|uma|dois|duas|tres|quatro|cinco|seis|sete|oito|nove|dez)';
+  t=t.replace(new RegExp(w+'\\s+(?:virgula|ponto)\\s+'+w,'g'),(m,a,b)=>NUMW[a]+'.'+NUMW[b]); // "sete virgula cinco" -> 7.5
+  t=t.replace(new RegExp(w+'\\s+(?:e\\s+)?mei[oa]','g'),(m,a)=>NUMW[a]+'.5');                  // "oito e meio" / "oito meio" -> 8.5
+  t=t.replace(new RegExp('\\b'+w+'\\b','g'),(m,a)=>NUMW[a]);                                   // "sete" -> 7
+  t=t.replace(/(\d+)\s+(?:e\s+)?mei[oa]/g,(m,a)=>a+'.5');                                       // "8 e meio" -> 8.5
+  return t;
+}
+/* para cada número no texto, acha o critério mais próximo antes dele (tolerante a typos e a palavras entre eles) */
+function bestFieldFor(word){
+  let bf=null,bd=1e9;
+  for(const f in FIELD_WORDS){ for(const kw of FIELD_WORDS[f]){ const dd=lev(word,kw); if(dd<bd){bd=dd;bf=f;} } }
+  const maxD=word.length<=4?1:(word.length<=7?2:3);
+  return (bf && bd<=maxD)?{field:bf,dist:bd}:null;
+}
 function parseNotes(raw){
   const out={}, bestDist={};
-  const text=normalize(raw);
-  const re=/([a-z]{3,})\s*[:=\-–]?\s*(\d+(?:[.,]\d+)?)/g;
+  const text=wordsToNumbers(normalize(raw));
+  const numRe=/(-?\d+(?:[.,]\d+)?)/g;
   let m;
-  while((m=re.exec(text))!==null){
-    const word=m[1], val=parseFloat(m[2].replace(',','.'));
-    let bf=null, bd=1e9;
-    for(const f in FIELD_WORDS){
-      for(const kw of FIELD_WORDS[f]){
-        const dd=lev(word,kw);
-        if(dd<bd){bd=dd; bf=f;}
-      }
-    }
-    const maxD = word.length<=4?1:(word.length<=7?2:3);
-    if(bf && bd<=maxD){
-      if(bestDist[bf]===undefined || bd<bestDist[bf]){ out[bf]=val; bestDist[bf]=bd; }
-    }
+  while((m=numRe.exec(text))!==null){
+    const val=parseFloat(m[1].replace(',','.'));
+    const before=text.slice(Math.max(0,m.index-30), m.index); // janela antes do número
+    const words=before.match(/[a-z]{3,}/g)||[];
+    let hit=null;
+    for(let i=words.length-1;i>=0;i--){ const r=bestFieldFor(words[i]); if(r){ hit=r; break; } } // a mais próxima vence
+    if(hit && (bestDist[hit.field]===undefined || hit.dist<bestDist[hit.field])){ out[hit.field]=clampGrade(val); bestDist[hit.field]=hit.dist; }
   }
   return out;
 }
@@ -496,6 +515,9 @@ function parseNotes(raw){
 /* ============ CÁLCULOS (médias proporcionais, escala 0 a 10) ============ */
 const num=v=>(v===null||v===undefined||v==='')?null:(isNaN(+v)?null:+v);
 const fmt=v=>v===null?'':(+v).toFixed(1).replace('.',',');
+/* limita qualquer nota a 0-10 */
+function clampGrade(v){ if(v===null||v===undefined||v==='')return null; const n=+String(v).replace(',','.'); if(isNaN(n))return null; return Math.max(0,Math.min(10,n)); }
+function caretEnd(el){ try{ const r=document.createRange(); r.selectNodeContents(el); r.collapse(false); const s=window.getSelection(); s.removeAllRanges(); s.addRange(r);}catch(e){} }
 function avg(arr){const a=arr.map(num).filter(x=>x!==null);if(!a.length)return null;return a.reduce((s,x)=>s+x,0)/a.length;}
 function oralResult(p){return avg([p.fluency,p.pronunciation,p.vocabulary]);}
 function partResult(p){return avg([p.participation,p.dedication,p.socialization]);}
@@ -575,8 +597,14 @@ function renderReport(data){
 
 function attachHandlers(){
   document.querySelectorAll('#sheetWrap [data-kind="grade"]').forEach(el=>el.addEventListener('input',()=>{
-    const pk=el.dataset.pkey,f=el.dataset.field;const raw=(el.textContent||'').trim();let v=raw.replace(',','.');
-    STATE[pk][f]=raw===''?null:(isNaN(+v)?raw:+v);recalc();}));
+    const pk=el.dataset.pkey,f=el.dataset.field;const raw=(el.textContent||'').trim();
+    if(raw===''){ STATE[pk][f]=null; recalc(); return; }
+    const n=+raw.replace(',','.');
+    if(isNaN(n)){ STATE[pk][f]=raw; recalc(); return; }
+    const c=Math.max(0,Math.min(10,n)); STATE[pk][f]=c;
+    if(c!==n){ el.textContent=fmt(c); caretEnd(el); } // limita a 0-10 na hora
+    recalc();
+  }));
   document.querySelectorAll('#sheetWrap .obs-box').forEach(box=>box.addEventListener('input',()=>{STATE[box.dataset.pkey][box.dataset.field]=box.innerText;}));
   document.querySelectorAll('#sheetWrap .medcell').forEach(cell=>cell.querySelectorAll('.box').forEach(b=>b.addEventListener('click',()=>{
     const pk=cell.dataset.pkey,f=cell.dataset.field,val=b.dataset.val;const cur=STATE[pk][f];const nv=cur===val?null:val;STATE[pk][f]=nv;
@@ -688,7 +716,7 @@ $('generate').onclick=()=>{
   // notas digitadas direto no guia têm prioridade sobre o texto livre
   document.querySelectorAll('.rg-in').forEach(inp=>{
     const raw=(inp.value||'').trim().replace(',','.'); if(raw==='')return;
-    const v=+raw; if(!isNaN(v)) base[pk][inp.dataset.field]=v;
+    const v=+raw; if(!isNaN(v)) base[pk][inp.dataset.field]=Math.max(0,Math.min(10,v));
   });
   if($('perfExcelente').checked){ NONTEST_FIELDS.forEach(f=>{ base[pk][f]=10; }); }
   base[pk].comment=comment;
