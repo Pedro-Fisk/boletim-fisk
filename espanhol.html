@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerador de Boletim FISK — Espanhol — Offline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+</head>
+<body>
+
+<div class="app" id="app">
+  <div id="confirmClear" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-title">Limpar todos os campos?</div>
+      <p class="modal-text">Isso apaga tudo que você preencheu nesta tela para começar um novo aluno. O seu nome de professor(a) é mantido. Deseja continuar?</p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost btn-sm" id="cancelClear">Cancelar</button>
+        <button class="btn btn-gold btn-sm" id="confirmClearBtn">Sim, limpar</button>
+      </div>
+    </div>
+  </div>
+  <div id="draftModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-title">Encontramos um rascunho salvo</div>
+      <p class="modal-text">Você tinha um boletim em andamento, salvo automaticamente às <b id="draftTime"></b>. Quer continuar de onde parou?</p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost btn-sm" id="draftDiscardBtn">Descartar</button>
+        <button class="btn btn-gold btn-sm" id="draftRestoreBtn">Continuar rascunho</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="brandbar"><img id="brandLogo" alt="FISK"><div><h1>Gerador de Boletim</h1><p class="sub">Espanhol · Jovens e Adultos · Versão offline (sem custo)</p></div><button class="btn btn-ghost btn-sm" id="themeToggle" style="margin-left:auto">🌙 Modo escuro</button><button class="btn btn-ghost btn-sm" id="clearBtn">🧹 Limpar campos</button></div>
+
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-head"><span>📊 Progresso do boletim</span><span class="pct" id="progressPct">0%</span></div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div id="autosaveHint" style="font-size:11.5px;color:var(--gray);margin-top:6px"></div>
+  </div>
+
+  <div class="card">
+    <h2>👋 Professor(a)</h2>
+    <label class="fld">Seu nome <span style="font-weight:600;color:var(--gray)">— fica salvo neste navegador e já vem preenchido nos próximos boletins</span></label>
+    <input type="text" id="s_teacher" placeholder="Seu nome">
+    <div style="border-top:1.5px solid var(--line);margin-top:18px;padding-top:6px"></div>
+    <h2 style="margin-top:10px">📂 Já começou este boletim? (2ª avaliação)</h2>
+    <p class="hint">Suba aqui o próprio PDF do boletim da 1ª avaliação (o que você gerou nesta ferramenta). A 1ª coluna é reconstruída automaticamente e você só preenche a 2ª.</p>
+    <div class="loadbox">
+      <input type="file" id="loadFile" accept=".pdf,application/pdf,.fiskjson,.json">
+      <div id="loadStatus" style="margin-top:8px"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>👤 Dados do aluno</h2>
+    <label class="fld">Nome completo do aluno</label>
+    <input type="text" id="s_name" placeholder="Nome completo do aluno">
+    <label class="fld">Período</label>
+    <div class="row-inline">
+      <div class="pill-toggle" id="halfToggle">
+        <button data-h="Meio">Meio</button>
+        <button data-h="Fim">Fim</button>
+      </div>
+      <div class="pill-toggle" id="semToggle">
+        <button data-s="1º">1º Semestre</button>
+        <button data-s="2º">2º Semestre</button>
+      </div>
+    </div>
+    <label class="fld">Nivel</label>
+    <input type="text" id="s_level" list="stagesList" placeholder="Comece a digitar..." autocomplete="off"><datalist id="stagesList"></datalist>
+  </div>
+
+  <div class="card">
+    <h2>🗓️ Qual avaliação você está preenchendo?</h2>
+    <div class="pill-toggle" id="periodToggle">
+      <button data-p="1" class="active">1ª Avaliação</button>
+      <button data-p="2">2ª Avaliação</button>
+    </div>
+    <label class="fld" style="margin-top:14px">Data desta avaliação (opcional)</label>
+    <div class="row-inline">
+      <select id="dateMode" style="max-width:180px">
+        <option value="date">Data específica</option>
+        <option value="week">Semana do mês</option>
+      </select>
+      <input type="date" id="dateSpecific" style="max-width:200px">
+      <span id="weekPickers" style="display:none" class="row-inline">
+        <select id="weekNum" style="max-width:130px"></select>
+        <select id="weekMonth" style="max-width:150px"></select>
+      </span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📋 Critérios e notas (0 a 10)</h2>
+    <p class="hint">Você pode lançar as notas de duas formas, como preferir: digitando direto no campo ao lado de cada critério, ou escrevendo (ou ditando pelo computador) as notas livremente no campo mais abaixo.</p>
+    <div class="rubric">
+      <div class="rgh">Pruebas</div>
+      <div class="rg"><div class="nn">A</div><div><b>Comprensión auditiva</b> <i>(listening)</i></div><input class="rg-in" data-field="listeningTest" inputmode="decimal" placeholder="–"></div>
+      <div class="rg"><div class="nn">B</div><div><b>Escrita</b> <i>(written)</i></div><input class="rg-in" data-field="writtenTest" inputmode="decimal" placeholder="–"></div>
+      <div class="rgh rg-nt">Rendimiento oral</div>
+      <div class="rg rg-nt"><div class="nn">C</div><div><b>Fluencia</b></div><input class="rg-in" data-field="fluencia" inputmode="decimal" placeholder="–"></div>
+      <div class="rg rg-nt"><div class="nn">D</div><div><b>Expresividad</b></div><input class="rg-in" data-field="expresividad" inputmode="decimal" placeholder="–"></div>
+      <div class="rg rg-nt"><div class="nn">E</div><div><b>Pronunciación</b></div><input class="rg-in" data-field="pronunciacion" inputmode="decimal" placeholder="–"></div>
+      <div class="rg rg-nt"><div class="nn">F</div><div><b>Vocabulario</b></div><input class="rg-in" data-field="vocabulario" inputmode="decimal" placeholder="–"></div>
+      <div class="rgh rg-nt">Participación</div>
+      <div class="rg rg-nt"><div class="nn">G</div><div><b>Comportamiento</b></div><input class="rg-in" data-field="comportamiento" inputmode="decimal" placeholder="–"></div>
+      <div class="rg rg-nt"><div class="nn">H</div><div><b>Social</b></div><input class="rg-in" data-field="social" inputmode="decimal" placeholder="–"></div>
+      <div class="rg rg-nt"><div class="nn">I</div><div><b>Tarea</b></div><input class="rg-in" data-field="tarea" inputmode="decimal" placeholder="–"></div>
+      <div class="rg rg-nt"><div class="nn">J</div><div><b>Cyber</b></div><input class="rg-in" data-field="cyber" inputmode="decimal" placeholder="–"></div>
+    </div>
+    <label class="sugg-chk" style="margin-top:12px"><input type="checkbox" id="perfExcelente"><span><b>Performance excelente</b> — dá nota 10 a todos os critérios exceto os testes (A e B), marca Oro em tudo e já seleciona a frase 10 no comentário</span></label>
+  </div>
+
+  <div class="card">
+    <h2>🥇 Uso del lenguaje</h2>
+    <p class="hint">Marque o nível (Bronce, Plata ou Oro) para cada critério, referente à avaliação selecionada acima. Clique novamente para desmarcar.</p>
+    <div id="medalBoxes"></div>
+  </div>
+
+  <div class="card">
+    <h2>📈 Evaluación general e frecuencia</h2>
+    <p class="hint">Evolução geral do aluno para a faixa etária, e o número de faltas nesta avaliação.</p>
+    <label class="fld">Evoluciona en su aprendizaje de acuerdo a lo que se espera para su grupo de edad</label>
+    <div class="pill-toggle" id="evolucionToggle">
+      <button data-m="bronce">Bronce</button>
+      <button data-m="plata">Plata</button>
+      <button data-m="oro">Oro</button>
+    </div>
+    <label class="fld">Ausencias</label>
+    <input type="text" id="s_ausencias" inputmode="numeric" placeholder="Número de faltas" style="max-width:160px">
+  </div>
+
+  <div class="card">
+    <h2>✍️ Escreva (ou fale) as notas dos alunos <span style="font-size:12px;color:var(--gray);font-weight:600">(0 a 10)</span></h2>
+    <p class="hint">Escreva de forma corrida, com a palavra do critério seguida da nota. Você também pode ativar a função de ditado do seu computador e falar as notas. A página lê os números e monta o boletim. Você ajusta qualquer coisa na tela seguinte.</p>
+    <textarea id="notes" placeholder="Ex.: fluencia 8, expresividad 7, pronunciación 8, vocabulario 6, comportamiento 9, social 8, tarea 7, cyber 8, escucha 8,5, escrita 7 (também aceita por extenso: fluencia sete e meio)"></textarea>
+    <div class="keyword-help">
+      Critérios: <code>A · escucha</code> <code>B · escrita</code> <code>C · fluencia</code> <code>D · expresividad</code> <code>E · pronunciación</code> <code>F · vocabulario</code> <code>G · comportamiento</code> <code>H · social</code> <code>I · tarea</code> <code>J · cyber</code>. Não achou alguma nota? Digite direto no boletim.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🎯 Sugestões de melhoria</h2>
+    <p class="hint">Marque o que o aluno pode fazer para se desenvolver melhor. As marcadas aparecem no boletim. (Opcional.)</p>
+    <div id="suggBoxes"></div>
+    <label class="fld">Outros (escreva livremente)</label>
+    <input type="text" id="suggOther" placeholder="ex.: participar mais das atividades em grupo">
+  </div>
+
+  <div class="card">
+    <h2>💬 Comentário do aluno <span class="req">* obrigatório</span></h2>
+    <p class="hint">Escolha a frase que melhor descreve o aluno, numa escala de 0 a 10 (10 = desempenho impecável, 0 = precisa de muito suporte). Apenas a frase escolhida será transcrita para o boletim.</p>
+    <div id="cmtScale"></div>
+    <div style="margin-top:18px" class="row-inline">
+      <button class="btn btn-primary" id="generate">Montar boletim →</button>
+      <span id="genStatus" class="status"></span>
+    </div>
+  </div>
+</div>
+
+<div id="preview">
+  <div class="toolbar">
+    <button class="btn btn-ghost btn-sm" id="backBtn">← Voltar</button>
+    <span class="grow note">Clique nas notas para ajustar. As médias recalculam sozinhas. Baixe o PDF: ele guarda os dados para reabrir na 2ª avaliação.</span>
+    <button class="btn btn-gold btn-sm" id="pdfBtn">🖨️ Baixar PDF</button>
+  </div>
+  <div class="sheet-wrap" id="sheetWrap"></div>
+</div>
+
+<script src="logo.js"></script>
+<script src="script-espanhol.js"></script>
+</body>
+</html>
