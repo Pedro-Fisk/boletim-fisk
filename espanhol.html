@@ -35,6 +35,8 @@
     </div>
   </div>
 
+  <a class="back-link" href="https://pedro-fisk.github.io/fisk-hub/">← Voltar ao Hub</a>
+
   <div class="brandbar"><img id="brandLogo" alt="FISK"><div><h1>Gerador de Boletim</h1><p class="sub">Espanhol · Jovens e Adultos · Versão offline (sem custo)</p></div><button class="btn btn-ghost btn-sm" id="themeToggle" style="margin-left:auto">🌙 Modo escuro</button><button class="btn btn-ghost btn-sm" id="clearBtn">🧹 Limpar campos</button></div>
 
   <div class="progress-wrap" id="progressWrap">
@@ -117,31 +119,18 @@
   </div>
 
   <div class="card">
-    <h2>🥇 Uso del lenguaje</h2>
-    <p class="hint">Marque o nível (Bronce, Plata ou Oro) para cada critério, referente à avaliação selecionada acima. Clique novamente para desmarcar.</p>
-    <div id="medalBoxes"></div>
-  </div>
-
-  <div class="card">
-    <h2>📈 Evaluación general e frecuencia</h2>
-    <p class="hint">Evolução geral do aluno para a faixa etária, e o número de faltas nesta avaliação.</p>
-    <label class="fld">Evoluciona en su aprendizaje de acuerdo a lo que se espera para su grupo de edad</label>
-    <div class="pill-toggle" id="evolucionToggle">
-      <button data-m="bronce">Bronce</button>
-      <button data-m="plata">Plata</button>
-      <button data-m="oro">Oro</button>
-    </div>
-    <label class="fld">Ausencias</label>
-    <input type="text" id="s_ausencias" inputmode="numeric" placeholder="Número de faltas" style="max-width:160px">
-  </div>
-
-  <div class="card">
     <h2>✍️ Escreva (ou fale) as notas dos alunos <span style="font-size:12px;color:var(--gray);font-weight:600">(0 a 10)</span></h2>
     <p class="hint">Escreva de forma corrida, com a palavra do critério seguida da nota. Você também pode ativar a função de ditado do seu computador e falar as notas. A página lê os números e monta o boletim. Você ajusta qualquer coisa na tela seguinte.</p>
     <textarea id="notes" placeholder="Ex.: fluencia 8, expresividad 7, pronunciación 8, vocabulario 6, comportamiento 9, social 8, tarea 7, cyber 8, escucha 8,5, escrita 7 (também aceita por extenso: fluencia sete e meio)"></textarea>
     <div class="keyword-help">
       Critérios: <code>A · escucha</code> <code>B · escrita</code> <code>C · fluencia</code> <code>D · expresividad</code> <code>E · pronunciación</code> <code>F · vocabulario</code> <code>G · comportamiento</code> <code>H · social</code> <code>I · tarea</code> <code>J · cyber</code>. Não achou alguma nota? Digite direto no boletim.
     </div>
+  </div>
+
+  <div class="card">
+    <h2>🥇 Uso del lenguaje</h2>
+    <p class="hint">Marque o nível (Bronce, Plata ou Oro) para cada critério, referente à avaliação selecionada acima. Clique novamente para desmarcar.</p>
+    <div id="medalBoxes"></div>
   </div>
 
   <div class="card">
@@ -173,6 +162,7 @@
 </div>
 
 <script src="logo.js"></script>
+<script src="mic.js"></script>
 <script src="script-espanhol.js"></script>
 </body>
 </html>

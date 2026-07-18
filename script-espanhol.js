@@ -35,7 +35,7 @@ $('cancelClear').onclick=()=>$('confirmClear').classList.remove('open');
 $('confirmClear').addEventListener('click',e=>{ if(e.target===$('confirmClear')) $('confirmClear').classList.remove('open'); });
 $('confirmClearBtn').onclick=()=>{ clearAllFields(); $('confirmClear').classList.remove('open'); };
 function clearAllFields(){
-  $('s_name').value=''; $('s_level').value=''; $('notes').value=''; $('suggOther').value=''; $('s_ausencias').value='';
+  $('s_name').value=''; $('s_level').value=''; $('notes').value=''; $('suggOther').value='';
   document.querySelectorAll('.rg-in').forEach(i=>{ i.value=''; i.disabled=false; });
   $('perfExcelente').checked=false;
   document.querySelectorAll('.rubric .rg-nt').forEach(el=>el.classList.remove('dim'));
@@ -45,7 +45,7 @@ function clearAllFields(){
   document.querySelectorAll('#periodToggle button').forEach(b=>b.classList.toggle('active',b.dataset.p==='1'));
   period='1';
   $('dateMode').value='date'; $('weekPickers').style.display='none'; $('dateSpecific').style.display=''; $('dateSpecific').value='';
-  medalSel={escucha:null,comprende:null,gramatica:null}; evolucionSel=null; renderMedalBoxes();
+  medalSel={escucha:null,comprende:null,gramatica:null}; renderMedalBoxes();
   chosenScore=null; renderScale();
   loadedState=null; $('loadStatus').innerHTML=''; try{ $('loadFile').value=''; }catch(e){}
   $('genStatus').textContent='';
@@ -114,14 +114,13 @@ document.querySelectorAll('.rg-in').forEach(inp=>inp.addEventListener('input',()
   updateProgress();
 }));
 
-/* ============ USO DEL LENGUAJE + EVALUACIÓN GENERAL (Bronce / Plata / Oro) ============ */
+/* ============ USO DEL LENGUAJE (Bronce / Plata / Oro) ============ */
 const MEDAL_FIELDS=[
   {key:'escucha', label:'Escucha con entendimiento'},
   {key:'comprende', label:'Comprende textos escritos en Español'},
   {key:'gramatica', label:'Utiliza gramática y estructuras españolas'}
 ];
 let medalSel={escucha:null,comprende:null,gramatica:null};
-let evolucionSel=null;
 function renderMedalBoxes(){
   $('medalBoxes').innerHTML=MEDAL_FIELDS.map(m=>`
     <label class="fld" style="margin-top:12px">${m.label}</label>
@@ -142,14 +141,6 @@ function renderMedalBoxes(){
   });
 }
 renderMedalBoxes();
-document.querySelectorAll('#evolucionToggle button').forEach(b=>b.onclick=()=>{
-  const was=b.classList.contains('active');
-  document.querySelectorAll('#evolucionToggle button').forEach(x=>x.classList.remove('active'));
-  evolucionSel= was?null:b.dataset.m;
-  if(!was) b.classList.add('active');
-  updateProgress();
-});
-$('s_ausencias').addEventListener('input',updateProgress);
 
 /* Performance excelente: nota 10 em tudo exceto testes, Oro em tudo, e seleciona a frase 10 */
 const NONTEST_FIELDS=['fluencia','expresividad','pronunciacion','vocabulario','comportamiento','social','tarea','cyber'];
@@ -159,11 +150,10 @@ $('perfExcelente').addEventListener('change',()=>{
   // preenche (ou limpa) os campinhos dos critérios C a J com 10
   document.querySelectorAll('.rubric .rg-nt .rg-in').forEach(inp=>{ inp.value=on?'10':''; inp.disabled=on; });
   if(on){
-    medalSel={escucha:'oro',comprende:'oro',gramatica:'oro'}; evolucionSel='oro';
+    medalSel={escucha:'oro',comprende:'oro',gramatica:'oro'};
     chosenScore=10; renderScale(); $('genStatus').textContent='';
   }
   renderMedalBoxes();
-  document.querySelectorAll('#evolucionToggle button').forEach(b=>b.classList.toggle('active', on && b.dataset.m==='oro'));
   updateProgress();
 });
 
@@ -276,7 +266,6 @@ function suggList(p){
 }
 function gradeCell(pk,f,l,v){return `<div class="gradecell"><div class="lab">${l} (0-10)</div><div class="gval" contenteditable="true" data-pkey="${pk}" data-field="${f}" data-kind="grade">${v===null||v===undefined?'':fmt(v)}</div></div>`;}
 function testCell(pk,f,v){return `<div class="testbox"><div class="tval" contenteditable="true" data-pkey="${pk}" data-field="${f}" data-kind="grade">${v===null||v===undefined?'':fmt(v)}</div></div>`;}
-function freqCell(pk,f,v){return `<div class="testbox"><div class="tval" contenteditable="true" data-pkey="${pk}" data-field="${f}" data-kind="text">${esc(v)}</div></div>`;}
 function critRow(ic,es,pt,fk,l,p1,p2){return `<div class="crit"><div class="ic">${ic}</div><div class="txt"><b>${es}</b><i>${pt}</i></div>${gradeCell('p1',fk,l,num(p1[fk]))}${gradeCell('p2',fk,l,num(p2[fk]))}</div>`;}
 function medalBox(val){
   const mk=v=>`<div class="box b-${v==='bronce'?'bronze':v==='plata'?'silver':'gold'} ${val===v?'on':''}" data-val="${v}">${val===v?'✕':''}</div>`;
@@ -334,15 +323,7 @@ function renderReport(data){
       </div></div>
     </div></div>`;
   const page2=`<div class="sheet"><div class="rc-outer">
-      <div class="band">EVALUACIÓN GENERAL <i>– Avaliação Geral</i></div>
-      <div class="rc-datehead" style="margin-bottom:6px"><div class="rc-datebox">Fecha: <span class="dval">${esc(p1.date)}</span></div><div class="rc-datebox">Fecha: <span class="dval">${esc(p2.date)}</span></div></div>
-      ${medalHead()}
-      ${medalRow('🌱','Evoluciona en su aprendizaje de acuerdo a lo que se espera para su grupo de edad','Evolui em sua aprendizagem de acordo com o esperado para faixa etária','evolucion',p1,p2)}
-
-      <div class="band" style="margin-top:14px">FRECUENCIA <i>– Frequência</i></div>
-      <div class="testrow"><div class="txt"><b>Ausencias</b><i>Faltas</i></div>${freqCell('p1','ausencias',p1.ausencias)}${freqCell('p2','ausencias',p2.ausencias)}</div>
-
-      <div class="band" style="margin-top:14px">RESULTADOS FINALES <i>– Resultados Finais</i></div>
+      <div class="band">RESULTADOS FINALES <i>– Resultados Finais</i></div>
       <div class="final-cols">${finalCol('1ª','p1',p1)}${finalCol('2ª','p2',p2)}</div>
 
       <div class="band" style="margin-top:14px">SUGERENCIAS DE MEJORA <i>– Sugestões de Melhoria</i></div>
@@ -353,8 +334,8 @@ function renderReport(data){
 
       <div class="band" style="margin-top:14px">OBSERVACIONES / COMENTARIOS <i>– Observações / Comentários</i></div>
       <div class="obs-cols">
-        <div class="obs-box" contenteditable="true" data-ph="Comentários da 1ª avaliação" data-pkey="p1" data-field="comment">${esc(p1.comment)}</div>
-        <div class="obs-box" contenteditable="true" data-ph="Comentários da 2ª avaliação" data-pkey="p2" data-field="comment">${esc(p2.comment)}</div>
+        <div class="obs-wrap"><div class="obs-box" contenteditable="true" data-ph="Comentários da 1ª avaliação" data-pkey="p1" data-field="comment">${esc(p1.comment)}</div><button type="button" class="mic-btn" title="Ditar por voz">🎙️</button></div>
+        <div class="obs-wrap"><div class="obs-box" contenteditable="true" data-ph="Comentários da 2ª avaliação" data-pkey="p2" data-field="comment">${esc(p2.comment)}</div><button type="button" class="mic-btn" title="Ditar por voz">🎙️</button></div>
       </div>
       <div class="band" style="margin-bottom:6px">FIRMA DE LOS PADRES <i>– Assinatura do Responsável</i></div>
       <div class="sign-cols"><div class="sign-line">&nbsp;</div><div class="sign-line">&nbsp;</div></div>
@@ -381,6 +362,10 @@ function attachHandlers(){
   document.querySelectorAll('#sheetWrap .medcell').forEach(cell=>cell.querySelectorAll('.box').forEach(b=>b.addEventListener('click',()=>{
     const pk=cell.dataset.pkey,f=cell.dataset.field,val=b.dataset.val;const cur=STATE[pk][f];const nv=cur===val?null:val;STATE[pk][f]=nv;
     cell.querySelectorAll('.box').forEach(x=>{x.classList.toggle('on',x.dataset.val===nv);x.textContent=x.dataset.val===nv?'✕':'';});})));
+  document.querySelectorAll('#sheetWrap .mic-btn').forEach(btn=>{
+    const box=btn.closest('.obs-wrap').querySelector('.obs-box');
+    attachDictation(btn, box, text=>{ STATE[box.dataset.pkey][box.dataset.field]=text; });
+  });
 }
 function recalc(){['p1','p2'].forEach(pk=>{const p=STATE[pk];
   setTxt('oral-'+pk,fmt(oralResult(p)));setTxt('part-'+pk,fmt(partResult(p)));
@@ -390,7 +375,7 @@ function setTxt(id,v){const el=$(id);if(el)el.textContent=v;}
 
 /* ============ CARREGAR A 1ª AVALIAÇÃO (upload do PDF do boletim) ============ */
 const GRADE_FIELDS=['fluencia','expresividad','pronunciacion','vocabulario','comportamiento','social','tarea','cyber','listeningTest','writtenTest'];
-const ALL_GRADABLE=GRADE_FIELDS.concat(['escucha','comprende','gramatica','evolucion']);
+const ALL_GRADABLE=GRADE_FIELDS.concat(['escucha','comprende','gramatica']);
 
 /* ============ BARRA DE PROGRESSO ============ */
 function gradesFilledCount(){
@@ -399,7 +384,6 @@ function gradesFilledCount(){
   const fromNotes=parseNotes($('notes').value||'');
   GRADE_FIELDS.forEach(f=>{ if(fromNotes[f]!=null) filled.add(f); });
   ['escucha','comprende','gramatica'].forEach(f=>{ if(medalSel[f]) filled.add(f); });
-  if(evolucionSel) filled.add('evolucion');
   return filled.size;
 }
 function updateProgress(){
@@ -487,8 +471,6 @@ $('generate').onclick=()=>{
   });
   if($('perfExcelente').checked){ NONTEST_FIELDS.forEach(f=>{ base[pk][f]=10; }); }
   base[pk].escucha=medalSel.escucha; base[pk].comprende=medalSel.comprende; base[pk].gramatica=medalSel.gramatica;
-  base[pk].evolucion=evolucionSel;
-  base[pk].ausencias=$('s_ausencias').value||'';
   base[pk].comment=comment;
   base[pk].suggestions=selectedSuggestions();
   base[pk].suggestionsOther=$('suggOther').value;
@@ -540,9 +522,12 @@ async function generateEditablePDF(){
   }
   for(const sheet of sheets){
     const cells=[...sheet.querySelectorAll(EDIT_SELECTOR)];
+    const mics=[...sheet.querySelectorAll('.mic-btn')];
     cells.forEach(c=>c.classList.add('capture-hide'));
+    mics.forEach(m=>m.style.visibility='hidden');
     const canvas=await html2canvas(sheet,{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false});
     cells.forEach(c=>c.classList.remove('capture-hide'));
+    mics.forEach(m=>m.style.visibility='');
     const png=await pdf.embedPng(canvas.toDataURL('image/png'));
     const srect=sheet.getBoundingClientRect();
     const pw=srect.width, ph=srect.height;               // pontos = px CSS
@@ -586,10 +571,10 @@ let draftDirty=false, draftSaveTimer=null;
 function collectFormDraft(){
   return {
     stage:'form', savedAt:Date.now(), loadedState,
-    period, halfSel, semSel, chosenScore, medalSel, evolucionSel,
+    period, halfSel, semSel, chosenScore, medalSel,
     fields:{
       s_teacher:$('s_teacher').value, s_name:$('s_name').value, s_level:$('s_level').value,
-      notes:$('notes').value, suggOther:$('suggOther').value, s_ausencias:$('s_ausencias').value,
+      notes:$('notes').value, suggOther:$('suggOther').value,
       perfExcelente:$('perfExcelente').checked,
       dateMode:$('dateMode').value, dateSpecific:$('dateSpecific').value,
       weekNum:$('weekNum').value, weekMonth:$('weekMonth').value,
@@ -636,7 +621,6 @@ function applyFormDraft(d){
   $('s_level').value=f.s_level||'';
   $('notes').value=f.notes||'';
   $('suggOther').value=f.suggOther||'';
-  $('s_ausencias').value=f.s_ausencias||'';
   $('dateMode').value=f.dateMode||'date';
   $('dateMode').dispatchEvent(new Event('change'));
   $('dateSpecific').value=f.dateSpecific||'';
@@ -655,8 +639,6 @@ function applyFormDraft(d){
     document.querySelectorAll('.rubric .rg-nt .rg-in').forEach(inp=>inp.disabled=true);
   }
   medalSel=d.medalSel||{escucha:null,comprende:null,gramatica:null}; renderMedalBoxes();
-  evolucionSel=(d.evolucionSel===undefined)?null:d.evolucionSel;
-  document.querySelectorAll('#evolucionToggle button').forEach(b=>b.classList.toggle('active',b.dataset.m===evolucionSel));
   chosenScore=(d.chosenScore===undefined)?null:d.chosenScore;
   renderScale();
   updateProgress();

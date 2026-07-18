@@ -6,6 +6,8 @@
   .app .sub{color:var(--gray);margin:0;font-size:15px}
   .brandbar{display:flex;align-items:center;gap:14px;margin-bottom:18px}
   .brandbar img{height:42px}
+  .back-link{display:inline-block;margin-bottom:14px;color:var(--blue-dark);text-decoration:none;font-weight:700;font-size:13.5px}
+  .back-link:hover{text-decoration:underline}
   .progress-wrap{position:sticky;top:0;z-index:60;background:#fff;border:2px solid var(--line);border-radius:14px;padding:10px 16px;margin-bottom:18px;box-shadow:0 4px 14px rgba(28,159,214,.08)}
   .progress-head{display:flex;justify-content:space-between;align-items:center;font-family:'Poppins';font-weight:700;font-size:13px;color:var(--blue-dark);margin-bottom:7px}
   .progress-head .pct{color:var(--blue);font-size:14px}
@@ -155,8 +157,13 @@
   .crit-single .txt b{display:block;font-size:13px;font-weight:700;color:#33424a;line-height:1.15}
   .crit-single .txt i{display:block;font-size:11.5px;color:#7a8790;font-weight:400}
   .obs-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:6px}
-  .obs-box{border:2px solid var(--blue);border-radius:16px;min-height:150px;padding:12px 14px;font-size:13.5px;line-height:1.55;color:#33424a;font-weight:500;white-space:pre-wrap;outline:none}
+  .obs-box{border:2px solid var(--blue);border-radius:16px;min-height:150px;padding:12px 14px;padding-right:46px;font-size:13.5px;line-height:1.55;color:#33424a;font-weight:500;white-space:pre-wrap;outline:none}
   .obs-box:empty:before{content:attr(data-ph);color:#aab8bf;font-style:italic}
+  .obs-wrap{position:relative}
+  .mic-btn{position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--blue);background:#fff;color:var(--blue-dark);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:5;transition:background .15s ease,border-color .15s ease}
+  .mic-btn:hover{background:var(--blue-soft)}
+  .mic-btn.listening{background:#e2001a;border-color:#e2001a;color:#fff;animation:micpulse 1.2s infinite}
+  @keyframes micpulse{0%,100%{box-shadow:0 0 0 0 rgba(226,0,26,.35)}50%{box-shadow:0 0 0 7px rgba(226,0,26,0)}}
   .sugg-box{border:2px solid var(--blue);border-radius:16px;min-height:60px;padding:10px 14px;font-size:13px;color:#33424a;font-weight:600}
   .sugg-item{padding:3px 0;color:#12405a}
   .sugg-empty{color:#aab8bf;font-style:italic;font-weight:400}

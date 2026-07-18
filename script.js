@@ -280,8 +280,8 @@ function renderReport(data){
 
       <div class="band" style="margin-top:14px">OBSERVATIONS / COMMENTS <i>– Observações / Comentários</i></div>
       <div class="obs-cols">
-        <div class="obs-box" contenteditable="true" data-ph="Comentários da 1ª avaliação" data-pkey="p1" data-field="comment">${esc(p1.comment)}</div>
-        <div class="obs-box" contenteditable="true" data-ph="Comentários da 2ª avaliação" data-pkey="p2" data-field="comment">${esc(p2.comment)}</div>
+        <div class="obs-wrap"><div class="obs-box" contenteditable="true" data-ph="Comentários da 1ª avaliação" data-pkey="p1" data-field="comment">${esc(p1.comment)}</div><button type="button" class="mic-btn" title="Ditar por voz">🎙️</button></div>
+        <div class="obs-wrap"><div class="obs-box" contenteditable="true" data-ph="Comentários da 2ª avaliação" data-pkey="p2" data-field="comment">${esc(p2.comment)}</div><button type="button" class="mic-btn" title="Ditar por voz">🎙️</button></div>
       </div>
       <div class="band" style="margin-bottom:6px">PARENT'S SIGNATURE <i>– Assinatura do Responsável</i></div>
       <div class="sign-cols"><div class="sign-line">&nbsp;</div><div class="sign-line">&nbsp;</div></div>
@@ -305,6 +305,10 @@ function attachHandlers(){
   document.querySelectorAll('#sheetWrap .medcell').forEach(cell=>cell.querySelectorAll('.box').forEach(b=>b.addEventListener('click',()=>{
     const pk=cell.dataset.pkey,f=cell.dataset.field,val=b.dataset.val;const cur=STATE[pk][f];const nv=cur===val?null:val;STATE[pk][f]=nv;
     cell.querySelectorAll('.box').forEach(x=>{x.classList.toggle('on',x.dataset.val===nv);x.textContent=x.dataset.val===nv?'✕':'';});})));
+  document.querySelectorAll('#sheetWrap .mic-btn').forEach(btn=>{
+    const box=btn.closest('.obs-wrap').querySelector('.obs-box');
+    attachDictation(btn, box, text=>{ STATE[box.dataset.pkey][box.dataset.field]=text; });
+  });
 }
 function recalc(){['p1','p2'].forEach(pk=>{const p=STATE[pk];
   setTxt('oral-'+pk,fmt(oralResult(p)));setTxt('part-'+pk,fmt(partResult(p)));
@@ -491,9 +495,12 @@ async function generateEditablePDF(){
   }
   for(const sheet of sheets){
     const cells=[...sheet.querySelectorAll(EDIT_SELECTOR)];
+    const mics=[...sheet.querySelectorAll('.mic-btn')];
     cells.forEach(c=>c.classList.add('capture-hide'));
+    mics.forEach(m=>m.style.visibility='hidden');
     const canvas=await html2canvas(sheet,{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false});
     cells.forEach(c=>c.classList.remove('capture-hide'));
+    mics.forEach(m=>m.style.visibility='');
     const png=await pdf.embedPng(canvas.toDataURL('image/png'));
     const srect=sheet.getBoundingClientRect();
     const pw=srect.width, ph=srect.height;               // pontos = px CSS

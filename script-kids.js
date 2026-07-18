@@ -209,7 +209,7 @@ function renderReport(data){
       </div>
       ${sectionsHtml}
       <div class="band" style="margin-top:14px">OBSERVATIONS / COMMENTS <i>– Observações / Comentários</i></div>
-      <div class="obs-box" contenteditable="true" data-ph="Comentários do aluno" data-field="comment">${esc(data.comment)}</div>
+      <div class="obs-wrap"><div class="obs-box" contenteditable="true" data-ph="Comentários do aluno" data-field="comment">${esc(data.comment)}</div><button type="button" class="mic-btn" title="Ditar por voz">🎙️</button></div>
       <div class="rc-footer-logo"><img src="${LOGO}" alt="FISK"></div>
     </div></div>`;
   $('sheetWrap').innerHTML=sheet;
@@ -221,6 +221,10 @@ function attachHandlers(){
   document.querySelectorAll('#sheetWrap .medcell').forEach(cell=>cell.querySelectorAll('.box').forEach(b=>b.addEventListener('click',()=>{
     const f=cell.dataset.field,val=b.dataset.val;const cur=STATE.medals[f];const nv=cur===val?null:val;STATE.medals[f]=nv;
     cell.querySelectorAll('.box').forEach(x=>{x.classList.toggle('on',x.dataset.val===nv);x.textContent=x.dataset.val===nv?'✕':'';});})));
+  document.querySelectorAll('#sheetWrap .mic-btn').forEach(btn=>{
+    const box=btn.closest('.obs-wrap').querySelector('.obs-box');
+    attachDictation(btn, box, text=>{ STATE[box.dataset.field]=text; });
+  });
 }
 
 /* ============ BARRA DE PROGRESSO ============ */
@@ -292,7 +296,10 @@ async function generateEditablePDF(){
   const sheets=[...document.querySelectorAll('#sheetWrap .sheet')];
   let firstPage=null;
   for(const sheet of sheets){
+    const mics=[...sheet.querySelectorAll('.mic-btn')];
+    mics.forEach(m=>m.style.visibility='hidden');
     const canvas=await html2canvas(sheet,{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false});
+    mics.forEach(m=>m.style.visibility='');
     const png=await pdf.embedPng(canvas.toDataURL('image/png'));
     const srect=sheet.getBoundingClientRect();
     const pw=srect.width, ph=srect.height;
