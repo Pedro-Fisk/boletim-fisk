@@ -164,6 +164,11 @@
   .mic-btn:hover{background:var(--blue-soft)}
   .mic-btn.listening{background:#e2001a;border-color:#e2001a;color:#fff;animation:micpulse 1.2s infinite}
   @keyframes micpulse{0%,100%{box-shadow:0 0 0 0 rgba(226,0,26,.35)}50%{box-shadow:0 0 0 7px rgba(226,0,26,0)}}
+  /* botão de microfone nos campos do formulário (não só na pré-visualização do boletim) */
+  .field-wrap{position:relative}
+  .field-wrap textarea,.field-wrap input[type=text]{padding-right:44px}
+  .field-wrap .mic-btn{top:12px;right:8px}
+  .field-wrap.inline .mic-btn{top:50%;transform:translateY(-50%);width:26px;height:26px;font-size:12px}
   .sugg-box{border:2px solid var(--blue);border-radius:16px;min-height:60px;padding:10px 14px;font-size:13px;color:#33424a;font-weight:600}
   .sugg-item{padding:3px 0;color:#12405a}
   .sugg-empty{color:#aab8bf;font-style:italic;font-weight:400}

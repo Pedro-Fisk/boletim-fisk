@@ -120,7 +120,10 @@
   <div class="card">
     <h2>✍️ Escreva (ou fale) as notas dos alunos <span style="font-size:12px;color:var(--gray);font-weight:600">(0 a 10)</span></h2>
     <p class="hint">Escreva de forma corrida, com a palavra do critério seguida da nota. Você também pode ativar a função de ditado do seu computador e falar as notas. A página lê os números e monta o boletim. Você ajusta qualquer coisa na tela seguinte.</p>
-    <textarea id="notes" placeholder="Ex.: fluência 8, pronúncia 8, vocabulário 6, participação 9, dedicação 7, socialização 8, escuta 8,5, escrita 7 (também aceita por extenso: fluência sete e meio)"></textarea>
+    <div class="field-wrap">
+      <textarea id="notes" placeholder="Ex.: fluência 8, pronúncia 8, vocabulário 6, participação 9, dedicação 7, socialização 8, escuta 8,5, escrita 7 (também aceita por extenso: fluência sete e meio)"></textarea>
+      <button type="button" class="mic-btn" id="notesMic" title="Ditar por voz">🎙️</button>
+    </div>
     <div class="keyword-help">
       Critérios: <code>A · escuta</code> <code>B · escrita</code> <code>C · fluência</code> <code>D · pronúncia</code> <code>E · vocabulário</code> <code>F · participação</code> <code>G · dedicação</code> <code>H · socialização</code>. Não achou alguma nota? Digite direto no boletim.
     </div>
@@ -131,7 +134,10 @@
     <p class="hint">Marque o que o aluno pode fazer para se desenvolver melhor. As marcadas aparecem no boletim. (Opcional.)</p>
     <div id="suggBoxes"></div>
     <label class="fld">Outros (escreva livremente)</label>
-    <input type="text" id="suggOther" placeholder="ex.: participar mais das atividades em grupo">
+    <div class="field-wrap inline">
+      <input type="text" id="suggOther" placeholder="ex.: participar mais das atividades em grupo">
+      <button type="button" class="mic-btn" id="suggOtherMic" title="Ditar por voz">🎙️</button>
+    </div>
   </div>
 
   <div class="card">

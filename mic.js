@@ -1,20 +1,24 @@
-/* Botão de microfone (ditado por voz) para os campos de observações/comentários dos boletins.
-   Usa a Web Speech API do navegador — não interfere em nenhuma configuração de acessibilidade
-   do computador, é só uma permissão de microfone daquela aba, como em qualquer chamada de vídeo. */
+/* Botão de microfone (ditado por voz) para os campos de texto livre dos boletins (notas, comentários,
+   observações, "outros"...). Usa a Web Speech API do navegador — não interfere em nenhuma configuração
+   de acessibilidade do computador, é só uma permissão de microfone daquela aba, como em qualquer chamada
+   de vídeo. Funciona tanto em <input>/<textarea> quanto em caixas contenteditable. */
 function attachDictation(btn, target, onChange){
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SR){ btn.style.display='none'; return; } // navegador sem suporte (ex.: Firefox) — some o botão
+  const isField = target.tagName==='INPUT' || target.tagName==='TEXTAREA';
   const rec = new SR();
   rec.lang = 'pt-BR';
   rec.continuous = true;
   rec.interimResults = true;
   let listening=false, baseText='';
+  function getCurrent(){ return isField ? (target.value||'') : (target.innerText||''); }
   function currentBase(){
-    const t = (target.innerText||'').trim();
+    const t = getCurrent().trim();
     return t ? t+' ' : '';
   }
   function setText(t){
-    target.innerText = t;
+    if(isField){ target.value=t; target.dispatchEvent(new Event('input',{bubbles:true})); }
+    else{ target.innerText=t; }
     if(onChange) onChange(t);
   }
   btn.addEventListener('click', ()=>{

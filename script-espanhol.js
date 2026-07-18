@@ -1,6 +1,8 @@
 /* Gerador de Boletim FISK — Espanhol. LOGO vem de logo.js (compartilhado com script.js). */
 const $=id=>document.getElementById(id);
 $('brandLogo').src=LOGO;
+attachDictation($('notesMic'), $('notes'));
+attachDictation($('suggOtherMic'), $('suggOther'));
 let period='1', loadedState=null, halfSel=null, semSel=null;
 const BIM_YEAR=new Date().getFullYear();
 // o ano só entra no valor final (aparece no documento), não nos botões

@@ -1,6 +1,7 @@
 /* Gerador de Boletim FISK — Kids e Teens. LOGO vem de logo.js (compartilhado com os outros geradores). */
 const $=id=>document.getElementById(id);
 $('brandLogo').src=LOGO;
+attachDictation($('extraOtherMic'), $('extraOther'));
 
 /* ===== Limpar campos (com confirmação) ===== */
 $('clearBtn').onclick=()=>$('confirmClear').classList.add('open');
