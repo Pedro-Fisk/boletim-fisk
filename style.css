@@ -141,6 +141,19 @@
   .medcell .box.on{background:var(--blue-soft);border-color:var(--blue)}
   .medcell .b-bronze{background:#f6ead6}.medcell .b-silver{background:#eef0f2}.medcell .b-gold{background:#f7edd6}
   .freqbox{display:grid;grid-template-columns:1fr 120px 120px;gap:6px;align-items:center;margin-top:6px}
+  .medal-legend{display:flex;justify-content:flex-end;gap:14px;margin:6px 4px 10px}
+  .medal-legend .med-icon{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:9px;font-weight:800;letter-spacing:.5px}
+  .medal-legend .med-icon .dot{width:20px;height:20px;border-radius:5px;border:1.5px solid #9bbecb}
+  .medal-legend .med-icon.med-b .dot{background:#f6ead6;border-color:var(--bronze)}
+  .medal-legend .med-icon.med-s .dot{background:#eef0f2;border-color:var(--silver)}
+  .medal-legend .med-icon.med-g .dot{background:#f7edd6;border-color:var(--gold)}
+  .crit-single{display:grid;grid-template-columns:26px 1fr 120px;gap:6px;align-items:center;padding:6px 2px}
+  .crit-single+.crit-single{border-top:1px solid #e8f4fa}
+  .crit-single.tagged{grid-template-columns:50px 1fr 120px}
+  .crit-single .ic{font-size:17px;text-align:center;color:var(--blue)}
+  .crit-single .tagw{font-size:9.5px;color:var(--blue-dark);font-weight:700;text-align:right;line-height:1.2}
+  .crit-single .txt b{display:block;font-size:13px;font-weight:700;color:#33424a;line-height:1.15}
+  .crit-single .txt i{display:block;font-size:11.5px;color:#7a8790;font-weight:400}
   .obs-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:6px}
   .obs-box{border:2px solid var(--blue);border-radius:16px;min-height:150px;padding:12px 14px;font-size:13.5px;line-height:1.55;color:#33424a;font-weight:500;white-space:pre-wrap;outline:none}
   .obs-box:empty:before{content:attr(data-ph);color:#aab8bf;font-style:italic}

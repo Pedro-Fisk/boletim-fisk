@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerador de Boletim FISK — Kids e Teens — Offline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+</head>
+<body>
+
+<div class="app" id="app">
+  <div id="confirmClear" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-title">Limpar todos os campos?</div>
+      <p class="modal-text">Isso apaga tudo que você preencheu nesta tela para começar um novo aluno. O seu nome de professor(a) é mantido. Deseja continuar?</p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost btn-sm" id="cancelClear">Cancelar</button>
+        <button class="btn btn-gold btn-sm" id="confirmClearBtn">Sim, limpar</button>
+      </div>
+    </div>
+  </div>
+  <div id="draftModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-title">Encontramos um rascunho salvo</div>
+      <p class="modal-text">Você tinha um boletim em andamento, salvo automaticamente às <b id="draftTime"></b>. Quer continuar de onde parou?</p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost btn-sm" id="draftDiscardBtn">Descartar</button>
+        <button class="btn btn-gold btn-sm" id="draftRestoreBtn">Continuar rascunho</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="brandbar"><img id="brandLogo" alt="FISK"><div><h1>Gerador de Boletim</h1><p class="sub">Kids e Teens · Versão offline (sem custo)</p></div><button class="btn btn-ghost btn-sm" id="themeToggle" style="margin-left:auto">🌙 Modo escuro</button><button class="btn btn-ghost btn-sm" id="clearBtn">🧹 Limpar campos</button></div>
+
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-head"><span>📊 Progresso do boletim</span><span class="pct" id="progressPct">0%</span></div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div id="autosaveHint" style="font-size:11.5px;color:var(--gray);margin-top:6px"></div>
+  </div>
+
+  <div class="card">
+    <h2>👋 Professor(a)</h2>
+    <label class="fld">Seu nome <span style="font-weight:600;color:var(--gray)">— fica salvo neste navegador e já vem preenchido nos próximos boletins</span></label>
+    <input type="text" id="s_teacher" placeholder="Seu nome">
+  </div>
+
+  <div class="card">
+    <h2>👤 Dados do aluno</h2>
+    <label class="fld">Nome completo do aluno</label>
+    <input type="text" id="s_name" placeholder="Nome completo do aluno">
+    <label class="fld">Level / Ano Escolar</label>
+    <input type="text" id="s_level" list="stagesList" placeholder="Comece a digitar..." autocomplete="off"><datalist id="stagesList"></datalist>
+    <label class="fld">Data desta avaliação (opcional)</label>
+    <div class="row-inline">
+      <select id="dateMode" style="max-width:180px">
+        <option value="date">Data específica</option>
+        <option value="week">Semana do mês</option>
+      </select>
+      <input type="date" id="dateSpecific" style="max-width:200px">
+      <span id="weekPickers" style="display:none" class="row-inline">
+        <select id="weekNum" style="max-width:130px"></select>
+        <select id="weekMonth" style="max-width:150px"></select>
+      </span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🏅 Critérios de avaliação</h2>
+    <p class="hint">Marque Bronze, Silver ou Gold para cada critério. Clique novamente no mesmo botão para desmarcar.</p>
+    <label class="sugg-chk"><input type="checkbox" id="perfExcelente"><span><b>Performance excelente</b> — marca Gold em todos os critérios de uma vez. Você ainda pode trocar individualmente por Silver ou Bronze onde quiser. A maioria dos boletins de crianças costuma ser assim.</span></label>
+    <div id="medalBoxes" style="margin-top:6px"></div>
+  </div>
+
+  <div class="card">
+    <h2>💬 Comentário do aluno <span class="req">* obrigatório</span></h2>
+    <p class="hint">Escolha a frase que melhor descreve o desenvolvimento do aluno, numa escala de 0 a 10 (10 = desempenho impecável, 0 = precisa de muito suporte).</p>
+    <div id="cmtScale"></div>
+  </div>
+
+  <div class="card">
+    <h2>🌱 Frases adicionais sobre desenvolvimento <span style="font-size:12px;color:var(--gray);font-weight:600">(opcional)</span></h2>
+    <p class="hint">Marque as frases que combinam com o aluno. Elas são acrescentadas ao final do comentário escolhido acima, no campo de observações do boletim.</p>
+    <div id="extraBoxes"></div>
+    <label class="fld">Outros (escreva livremente)</label>
+    <input type="text" id="extraOther" placeholder="ex.: adora participar das atividades com fantoches">
+  </div>
+
+  <div class="card">
+    <div style="margin-top:4px" class="row-inline">
+      <button class="btn btn-primary" id="generate">Montar boletim →</button>
+      <span id="genStatus" class="status"></span>
+    </div>
+  </div>
+</div>
+
+<div id="preview">
+  <div class="toolbar">
+    <button class="btn btn-ghost btn-sm" id="backBtn">← Voltar</button>
+    <span class="grow note">Clique nos ícones e no texto para ajustar. Baixe o PDF para salvar ou imprimir.</span>
+    <button class="btn btn-gold btn-sm" id="pdfBtn">🖨️ Baixar PDF</button>
+  </div>
+  <div class="sheet-wrap" id="sheetWrap"></div>
+</div>
+
+<script src="logo.js"></script>
+<script src="script-kids.js"></script>
+</body>
+</html>
