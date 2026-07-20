@@ -290,7 +290,15 @@ updateProgress();
 /* ============ GENERATE ============ */
 $('generate').onclick=()=>{
   if($('perfExcelente').checked) chosenScore=10;
-  if(chosenScore===null){ $('genStatus').textContent='⚠ Escolha uma frase de comentário (0 a 10).'; $('genStatus').className='status err'; return; }
+  /* campos obrigatórios: aluno, professor(a), estágio, todas as medalhas e a frase de comentário */
+  const missing=[];
+  if(!($('s_name').value||'').trim()) missing.push('nome do aluno');
+  if(!($('s_teacher').value||'').trim()) missing.push('nome do professor(a)');
+  if(!($('s_level').value||'').trim()) missing.push('estágio');
+  const semMedalha=CRITERIA.filter(c=>!medalSel[c.key]);
+  if(semMedalha.length) missing.push('medalha em '+semMedalha.length+' critério(s)');
+  if(chosenScore===null) missing.push('frase de comentário (0 a 10)');
+  if(missing.length){ $('genStatus').textContent='⚠ Obrigatório: '+missing.join(' · ')+'.'; $('genStatus').className='status err'; return; }
   $('genStatus').textContent='';
   const medals={};
   CRITERIA.forEach(c=>{ medals[c.key]=medalSel[c.key]||null; });

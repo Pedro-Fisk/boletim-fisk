@@ -58,7 +58,7 @@
 
   <div class="card">
     <h2>👋 Professor(a)</h2>
-    <label class="fld">Seu nome <span style="font-weight:600;color:var(--gray)">— fica salvo neste navegador e já vem preenchido nos próximos boletins</span></label>
+    <label class="fld">Seu nome <span class="req">*</span> <span style="font-weight:600;color:var(--gray)">— fica salvo neste navegador e já vem preenchido nos próximos boletins</span></label>
     <input type="text" id="s_teacher" placeholder="Seu nome">
     <div style="border-top:1.5px solid var(--line);margin-top:18px;padding-top:6px"></div>
     <h2 style="margin-top:10px">📂 Já começou este boletim? (2ª avaliação)</h2>
@@ -71,7 +71,7 @@
 
   <div class="card">
     <h2>👤 Dados do aluno</h2>
-    <label class="fld">Nome completo do aluno</label>
+    <label class="fld">Nome completo do aluno <span class="req">*</span></label>
     <input type="text" id="s_name" placeholder="Nome completo do aluno">
     <label class="fld">Período</label>
     <div class="row-inline">
@@ -84,7 +84,7 @@
         <button data-s="2º">2º Semestre</button>
       </div>
     </div>
-    <label class="fld">Estágio</label>
+    <label class="fld">Estágio <span class="req">*</span></label>
     <input type="text" id="s_level" list="stagesList" placeholder="Comece a digitar..." autocomplete="off"><datalist id="stagesList"></datalist>
   </div>
 
@@ -109,7 +109,7 @@
   </div>
 
   <div class="card">
-    <h2>📋 Critérios e notas (0 a 10)</h2>
+    <h2>📋 Critérios e notas (0 a 10) <span class="req">* obrigatório</span></h2>
     <p class="hint">Você pode lançar as notas de duas formas, como preferir: digitando direto no campo ao lado de cada critério, ou escrevendo (ou ditando pelo computador) as notas livremente no campo mais abaixo.</p>
     <div class="rubric">
       <div class="rgh">Testes</div>

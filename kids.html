@@ -56,15 +56,15 @@
 
   <div class="card">
     <h2>👋 Professor(a)</h2>
-    <label class="fld">Seu nome <span style="font-weight:600;color:var(--gray)">— fica salvo neste navegador e já vem preenchido nos próximos boletins</span></label>
+    <label class="fld">Seu nome <span class="req">*</span> <span style="font-weight:600;color:var(--gray)">— fica salvo neste navegador e já vem preenchido nos próximos boletins</span></label>
     <input type="text" id="s_teacher" placeholder="Seu nome">
   </div>
 
   <div class="card">
     <h2>👤 Dados do aluno</h2>
-    <label class="fld">Nome completo do aluno</label>
+    <label class="fld">Nome completo do aluno <span class="req">*</span></label>
     <input type="text" id="s_name" placeholder="Nome completo do aluno">
-    <label class="fld">Estágio</label>
+    <label class="fld">Estágio <span class="req">*</span></label>
     <input type="text" id="s_level" list="stagesList" placeholder="Comece a digitar... ex.: Playground Slide" autocomplete="off"><datalist id="stagesList"></datalist>
     <label class="fld">Data desta avaliação (opcional)</label>
     <div class="row-inline">
@@ -81,7 +81,7 @@
   </div>
 
   <div class="card">
-    <h2>🏅 Critérios de avaliação</h2>
+    <h2>🏅 Critérios de avaliação <span class="req">* obrigatório</span></h2>
     <p class="hint">Marque Bronze, Silver ou Gold para cada critério. Clique novamente no mesmo botão para desmarcar.</p>
     <label class="sugg-chk"><input type="checkbox" id="perfExcelente"><span><b>Performance excelente</b> — marca Gold em todos os critérios de uma vez. Você ainda pode trocar individualmente por Silver ou Bronze onde quiser. A maioria dos boletins de crianças costuma ser assim.</span></label>
     <div id="medalBoxes" style="margin-top:6px"></div>

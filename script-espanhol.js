@@ -483,11 +483,9 @@ async function loadFromPDF(buf){
 }
 
 /* ============ GENERATE ============ */
+const GRADE_LABELS={listeningTest:'A escucha',writtenTest:'B escrita',fluencia:'C fluencia',expresividad:'D expresividad',pronunciacion:'E pronunciación',vocabulario:'F vocabulario',comportamiento:'G comportamiento',social:'H social',tarea:'I tarea',cyber:'J cyber'};
 $('generate').onclick=()=>{
   if($('perfExcelente').checked) chosenScore=10;
-  if(chosenScore===null){ $('genStatus').textContent='⚠ Escolha uma frase de comentário (0 a 10).'; $('genStatus').className='status err'; return; }
-  const comment=resolveCmt(chosenScore);
-  $('genStatus').textContent='';
   const base = loadedState ? JSON.parse(JSON.stringify(loadedState)) : {student:{},p1:{},p2:{}};
   base.student=base.student||{};
   base.student.name=$('s_name').value||base.student.name||'';
@@ -503,6 +501,17 @@ $('generate').onclick=()=>{
     const v=+raw; if(!isNaN(v)) base[pk][inp.dataset.field]=Math.max(0,Math.min(10,v));
   });
   if($('perfExcelente').checked){ NONTEST_FIELDS.forEach(f=>{ base[pk][f]=10; }); }
+  /* campos obrigatórios: aluno, professor(a), nivel, todas as notas e a frase de comentário */
+  const missing=[];
+  if(!(base.student.name||'').trim()) missing.push('nome do aluno');
+  if(!(base.student.teacher||'').trim()) missing.push('nome do professor(a)');
+  if(!(base.student.level||'').trim()) missing.push('nivel');
+  const semNota=GRADE_FIELDS.filter(f=>base[pk][f]==null||base[pk][f]==='');
+  if(semNota.length) missing.push('notas pendentes ('+semNota.map(f=>GRADE_LABELS[f]).join(', ')+')');
+  if(chosenScore===null) missing.push('frase de comentário (0 a 10)');
+  if(missing.length){ $('genStatus').textContent='⚠ Obrigatório: '+missing.join(' · ')+'.'; $('genStatus').className='status err'; return; }
+  const comment=resolveCmt(chosenScore);
+  $('genStatus').textContent='';
   base[pk].escucha=medalSel.escucha; base[pk].comprende=medalSel.comprende; base[pk].gramatica=medalSel.gramatica;
   base[pk].comment=comment;
   base[pk].suggestions=selectedSuggestions();
