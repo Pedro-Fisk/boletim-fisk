@@ -160,6 +160,83 @@
   .sign-line{border-top:1.5px solid var(--red);text-align:center;font-size:11px;color:var(--gray);padding-top:4px}
   .rc-footer-logo{text-align:right;margin-top:16px}
   .rc-footer-logo img{height:30px;width:auto;opacity:.95}
+
+  /* ============ FOLHA KIDS (.sheet-kids2) ============
+     Layout fiel ao Report Card original (faixas horizontais de seção com
+     ícone circular, colunas Bronze/Silver/Gold tingidas com cubos, urso no
+     rodapé), na cor #41ccbc. A tela de preenchimento continua no padrão
+     vermelho/preto do Hub — só a folha impressa usa este tema. */
+  .sheet-kids2{--tk:#1a917b;--tk-dark:#136e5d;--tk-line:#c3e2da;--tk-ink:#33424a;
+    --cb-tint:#fbe9dc;--cs-tint:#edf0f1;--cg-tint:#f8ecd2;
+    --cb-bd:#c8843c;--cs-bd:#9aa2a8;--cg-bd:#c9922e;
+    padding-bottom:28px}
+  .sheet-kids2 .k-head{display:flex;gap:24px;align-items:center;border:2.5px solid var(--tk);border-radius:22px;padding:14px 24px}
+  .sheet-kids2 .k-head img{height:76px;width:auto}
+  .sheet-kids2 .k-fields{flex:1;font-size:13.5px}
+  .sheet-kids2 .k-fields .hf{display:flex;align-items:flex-end;gap:8px;margin:8px 0}
+  .sheet-kids2 .k-fields .hf label{font-weight:700;color:var(--tk-ink);white-space:nowrap}
+  .sheet-kids2 .k-fill{flex:1;border-bottom:1.5px solid var(--tk);min-height:19px;padding:0 4px;font-weight:600;color:#20323c}
+  .sheet-kids2 .k-fill.k-date{flex:none;width:190px}
+  .sheet-kids2 .k-main{border:2.5px solid var(--tk);border-radius:22px;margin-top:14px;overflow:hidden}
+  .sheet-kids2 .k-top{display:grid;grid-template-columns:1fr 330px}
+  .sheet-kids2 .k-titleblk{padding:20px 8px 12px 24px}
+  .sheet-kids2 .k-titleblk h2{font-family:'Poppins';font-weight:800;font-size:23px;color:#4a5560;margin:0;letter-spacing:.3px}
+  .sheet-kids2 .k-titleblk p{font-style:italic;color:#6b7780;margin:2px 0 10px;font-size:14px}
+  .sheet-kids2 .k-minileg{display:flex;flex-direction:column;gap:3px}
+  .sheet-kids2 .k-minileg span{display:flex;align-items:center;gap:6px;font-size:10.5px;color:#68767f}
+  .sheet-kids2 .k-minileg b{font-family:'Poppins';font-weight:800;color:var(--tk-ink);font-size:10px;letter-spacing:.4px}
+  .sheet-kids2 .k-minileg svg{width:13px;height:13px;flex:none}
+  .sheet-kids2 .k-colheads{display:grid;grid-template-columns:110px 110px 110px}
+  .sheet-kids2 .kch{flex-direction:row;gap:5px;padding:16px 0 10px}
+  .sheet-kids2 .kch svg{width:44px;height:44px}
+  .sheet-kids2 .kvw{position:relative;width:14px;height:56px}
+  .sheet-kids2 .kv{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-90deg);white-space:nowrap;font-family:'Poppins';font-weight:800;font-size:10px;letter-spacing:1px}
+  .sheet-kids2 .cb-b .kv{color:#b0763a}
+  .sheet-kids2 .cb-s .kv{color:#8d959b}
+  .sheet-kids2 .cb-g .kv{color:#b3821f}
+  .sheet-kids2 .k-band{position:relative;background:var(--tk);color:#fff;text-align:center;padding:10px 12px;z-index:1}
+  .sheet-kids2 .k-band b{font-family:'Poppins';font-weight:800;font-size:16.5px;letter-spacing:1.4px}
+  .sheet-kids2 .k-band i{font-style:italic;font-weight:500;font-size:15px;letter-spacing:1px}
+  .sheet-kids2 .k-bandcircle{position:absolute;left:26px;top:50%;transform:translateY(-50%);width:56px;height:56px;border-radius:50%;background:#fff;border:3px solid var(--tk);display:flex;align-items:center;justify-content:center;color:var(--tk);z-index:2}
+  .sheet-kids2 .k-bandcircle svg{width:27px;height:27px}
+  .sheet-kids2 .k-row{display:grid;grid-template-columns:100px 1fr 330px;align-items:stretch;min-height:66px}
+  .sheet-kids2 .k-row + .k-row{border-top:1.5px solid var(--tk-line)}
+  .sheet-kids2 .k-tag{display:flex;align-items:center;padding-left:20px;font-size:11px;color:var(--tk-dark);font-weight:700;line-height:1.25}
+  .sheet-kids2 .k-txt{display:flex;flex-direction:column;justify-content:center;padding:9px 10px 9px 0}
+  .sheet-kids2 .k-txt b{font-family:'Poppins';font-weight:700;font-size:15px;color:var(--tk-ink);line-height:1.2}
+  .sheet-kids2 .k-txt i{font-size:12.5px;color:#7a8790;font-style:italic;margin-top:2px}
+  .sheet-kids2 .k-row .medcell{display:grid;grid-template-columns:110px 110px 110px;border:none;border-radius:0;padding:0;background:transparent}
+  .sheet-kids2 .kcell{display:flex;align-items:center;justify-content:center}
+  .sheet-kids2 .cb-b{background:var(--cb-tint)}
+  .sheet-kids2 .cb-s{background:var(--cs-tint)}
+  .sheet-kids2 .cb-g{background:var(--cg-tint)}
+  .sheet-kids2 .kcell .box{width:34px;height:34px;background:#fff;border-radius:9px;border:2.5px solid;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:800;font-size:19px;color:var(--tk-ink)}
+  .sheet-kids2 .cb-b .box{border-color:var(--cb-bd)}
+  .sheet-kids2 .cb-s .box{border-color:var(--cs-bd)}
+  .sheet-kids2 .cb-g .box{border-color:var(--cg-bd)}
+  .sheet-kids2 .k-obs{position:relative;border:2.5px solid var(--tk);border-radius:22px;margin-top:14px;padding:16px 26px 20px}
+  .sheet-kids2 .k-obs-title{text-align:center;font-family:'Poppins';font-weight:800;font-size:16px;letter-spacing:1px;color:#4a5560;margin-bottom:6px}
+  .sheet-kids2 .obs-box{border:none;min-height:118px;border-radius:0;padding:6px 30px 6px 2px}
+  .sheet-kids2 .mic-btn{border-color:var(--tk);color:var(--tk-dark)}
+  .sheet-kids2 .mic-btn:hover{background:#e3f2ee}
+
+  /* ============ TEMAS DAS FOLHAS DE JOVENS/ADULTOS E ESPANHOL ============
+     As regras da folha (rc-, crit, band etc.) usam as variáveis --red,
+     --red-pill, --red-soft e --red-dark; redefinir essas variáveis no
+     elemento .sheet tinge a folha inteira sem tocar o formulário. */
+  .sheet-adults{--red:#2b4d70;--red-pill:#223e5a;--red-soft:#e9eff5;--red-dark:#223e5a;--ink:#1d3349;--box-bd:#a9bccd;--row-line:#e6ecf2}
+  .sheet-es{--red:#6e4220;--red-pill:#59351a;--red-soft:#f4ece3;--red-dark:#59351a;--ink:#3a2712;--box-bd:#c9ae94;--row-line:#efe6dc}
+  .sheet-themed .rc-logo-img{height:64px}
+  .sheet-themed .gval,.sheet-themed .tval,.sheet-themed .gradecell input,.sheet-themed .testbox input,
+  .sheet-themed .results-val,.sheet-themed .final-line .v,.sheet-themed .final-grade .v,
+  .sheet-themed .rc-fill,.sheet-themed .rc-datebox .dval,.sheet-themed .sugg-item{color:var(--ink,#1f2c36)}
+  .sheet-themed .crit + .crit,.sheet-themed .testrow + .testrow{border-top-color:var(--row-line,#edf0f2)}
+  .sheet-themed .medcell .box,.sheet-themed .medal-legend .med-icon .dot{border-color:var(--box-bd,#c3ccd1)}
+  /* aba vertical: rotação simples (o writing-mode desconfigura no PDF/html2canvas) */
+  .sheet-themed .rc-vtab{writing-mode:initial;transform:none;position:relative;padding:0;min-width:38px}
+  .sheet-themed .rc-vtab .vt{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-90deg);white-space:nowrap;display:flex;align-items:center;gap:7px;font-family:'Poppins';font-weight:700;font-size:12.5px;letter-spacing:1.5px;color:#fff}
+  .sheet-themed .rc-vtab .vt svg{width:15px;height:15px;flex:none}
+  .sheet-themed .crit .ic svg{width:18px;height:18px;vertical-align:middle}
   @media print{
     body{background:#fff}
     .toolbar,.app,.hero,footer,.no-print{display:none!important}

@@ -29,8 +29,27 @@ try{ const sp=localStorage.getItem('fisk_prof_name'); if(sp)$('s_teacher').value
 $('s_teacher').addEventListener('input',()=>{ try{ localStorage.setItem('fisk_prof_name',$('s_teacher').value); }catch(e){} updateProgress(); });
 $('s_level').addEventListener('input',updateProgress);
 
-/* ============ NÍVEIS (autocompletar) — edite com os nomes reais dos níveis de Kids e Teens ============ */
-const STAGES=["Nível 1","Nível 2","Nível 3","Nível 4","Nível 5","Nível 6"];
+/* ============ ESTÁGIOS (autocompletar) ============ */
+const STAGES=[
+  "Magic Way - Yellow Book",
+  "Magic Way - Blue Book",
+  "Magic Way - Red Book",
+  "Magic Way - Green Book",
+  "Playground Hello A",
+  "Playground Hello B",
+  "Playground Slide",
+  "Playground See-Saw",
+  "Playground Merry-go-round",
+  "Playground Maze",
+  "Fun At Home",
+  "Fun At School",
+  "Teens Connect 1",
+  "Teens Connect 2",
+  "Teens Connect 3",
+  "Teens Connect 4",
+  "Teens Elementary 1",
+  "Teens Elementary 2"
+];
 $('stagesList').innerHTML=STAGES.map(s=>'<option value="'+s.replace(/"/g,'&quot;')+'">').join('');
 
 /* ============ SELETOR DE DATA (calendário do ano vigente ou semana do mês) ============ */
@@ -173,13 +192,27 @@ function buildObservations(){
 let STATE=null;
 function esc(s){return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function medalBox(val){
-  const mk=v=>`<div class="box b-${v==='bronze'?'bronze':v==='silver'?'silver':'gold'} ${val===v?'on':''}" data-val="${v}">${val===v?'✕':''}</div>`;
-  return mk('bronze')+mk('silver')+mk('gold');
+  const mk=(v,cls)=>`<div class="kcell ${cls}"><div class="box ${val===v?'on':''}" data-val="${v}">${val===v?'✕':''}</div></div>`;
+  return mk('bronze','cb-b')+mk('silver','cb-s')+mk('gold','cb-g');
 }
 function critRow(c){
-  const tagCol = c.tag ? `<div class="tagw">${c.tag}</div>` : `<div class="ic">${c.ic||''}</div>`;
-  return `<div class="crit-single ${c.tag?'tagged':''}">${tagCol}<div class="txt"><b>${c.en}</b><i>${c.pt}</i></div>
+  return `<div class="k-row"><div class="k-tag">${c.tag||''}</div><div class="k-txt"><b>${c.en}</b><i>${c.pt}</i></div>
     <div class="medcell" data-field="${c.key}">${medalBox(STATE.medals[c.key])}</div></div>`;
+}
+
+/* Ícones das seções em SVG inline: os emojis somem no PDF (html2canvas não
+   desenha a fonte de emoji colorida), então a folha usa só SVG. */
+const SECTION_SVG={
+  '🎧 Listening — Escuta e Compreensão':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>',
+  '📣 Speaking — Oralidade':'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 3.5L9 7.8H5.5a3.2 3.2 0 0 0 0 6.4h.6l1.4 6h2.8l-1.3-5.7 11 4.3V3.5z"/></svg>',
+  '❤️ Socialization — Socialização':'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-9.7-9.2C.7 8.3 2.6 4.5 6.4 4.5c2 0 3.6 1.1 4.6 2.7 1-1.6 2.6-2.7 4.6-2.7 3.8 0 5.7 3.8 4.1 7.3C17.5 16.4 12 21 12 21z"/></svg>',
+  '⭐ General Evaluation — Avaliação Geral':'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.2l-6.1 3.4 1.4-6.8-5.1-4.7 6.9-.8L12 2z"/></svg>'
+};
+
+/* Cubo 3D (isométrico) das colunas Bronze/Silver/Gold, como no PDF original */
+function cubeSVG(kind){
+  const c={bronze:['#e2a26b','#c8843c','#9c5f27'],silver:['#dfe3e6','#b3bbc1','#8f979d'],gold:['#eccb7c','#cfa03c','#a3761d']}[kind];
+  return `<svg viewBox="0 0 24 24"><path d="M12 1.5 L21.5 6.75 L12 12 L2.5 6.75 Z" fill="${c[0]}"/><path d="M2.5 6.75 L12 12 L12 22.5 L2.5 17.25 Z" fill="${c[1]}"/><path d="M21.5 6.75 L12 12 L12 22.5 L21.5 17.25 Z" fill="${c[2]}"/></svg>`;
 }
 
 function renderReport(data){
@@ -187,31 +220,40 @@ function renderReport(data){
   const s=data.student||{};
   let bySection={}, order=[];
   CRITERIA.forEach(c=>{ if(!bySection[c.section]){ bySection[c.section]=[]; order.push(c.section); } bySection[c.section].push(c); });
-  const sectionIcons={'🎧 Listening — Escuta e Compreensão':'🎧','📣 Speaking — Oralidade':'📣','❤️ Socialization — Socialização':'❤️','⭐ General Evaluation — Avaliação Geral':'⭐'};
   const sectionsHtml=order.map(sec=>{
-    const title=sec.replace(/^\S+\s/,''); // remove o emoji do título, mantém no vtab
-    return `<div class="rc-section"><div class="rc-vtab">${sectionIcons[sec]||''} ${title.split(' — ')[0].toUpperCase()}</div><div class="rc-body">
-      ${bySection[sec].map(critRow).join('')}
-    </div></div>`;
+    const parts=sec.replace(/^\S+\s/,'').split(' — '); // ["Listening","Escuta e Compreensão"]
+    return `<div class="k-band"><span class="k-bandcircle">${SECTION_SVG[sec]||''}</span><b>${parts[0].toUpperCase()}</b><i>&nbsp;– ${(parts[1]||'').toUpperCase()}</i></div>
+      ${bySection[sec].map(critRow).join('')}`;
   }).join('');
-  const sheet=`<div class="sheet">
-    <div class="rc-frame rc-head"><img class="rc-logo-img" src="${LOGO}" alt="FISK">
-      <div class="rc-head-fields">
-        <div class="hf"><label>Name:</label><div class="rc-fill">${esc(s.name)}</div></div>
-        <div class="hf"><label>Date:</label><div class="rc-fill rc-year">${esc(s.date)}</div><label>Teacher:</label><div class="rc-fill rc-teacher">${esc(s.teacher)}</div></div>
-        <div class="hf"><label>Level / School Year:</label><div class="rc-fill">${esc(s.level)}</div></div>
+  const sheet=`<div class="sheet sheet-kids2">
+    <div class="k-head"><img src="${LOGO}" alt="FISK Taubaté · Caçapava">
+      <div class="k-fields">
+        <div class="hf"><label>Name:</label><div class="k-fill">${esc(s.name)}</div></div>
+        <div class="hf"><label>Date:</label><div class="k-fill k-date">${esc(s.date)}</div><label>Teacher:</label><div class="k-fill">${esc(s.teacher)}</div></div>
+        <div class="hf"><label>Estágio:</label><div class="k-fill">${esc(s.level)}</div></div>
       </div></div>
-    <div class="rc-outer">
-      <div class="rc-title"><h2>LEARNING PROGRESS REPORT</h2><p>Relatório de Progresso de Aprendizagem</p></div>
-      <div class="medal-legend">
-        <div class="med-icon med-b"><div class="dot"></div>BRONZE</div>
-        <div class="med-icon med-s"><div class="dot"></div>SILVER</div>
-        <div class="med-icon med-g"><div class="dot"></div>GOLD</div>
+    <div class="k-main">
+      <div class="k-top">
+        <div class="k-titleblk">
+          <h2>LEARNING PROGRESS REPORT</h2>
+          <p>Relatório de Progresso de Aprendizagem</p>
+          <div class="k-minileg">
+            <span>${cubeSVG('bronze')}<b>BRONZE</b> — performance dentro do esperado</span>
+            <span>${cubeSVG('silver')}<b>SILVER</b> — performance muito boa</span>
+            <span>${cubeSVG('gold')}<b>GOLD</b> — performance excelente</span>
+          </div>
+        </div>
+        <div class="k-colheads">
+          <div class="kcell kch cb-b"><span class="kvw"><span class="kv">BRONZE</span></span>${cubeSVG('bronze')}</div>
+          <div class="kcell kch cb-s"><span class="kvw"><span class="kv">SILVER</span></span>${cubeSVG('silver')}</div>
+          <div class="kcell kch cb-g"><span class="kvw"><span class="kv">GOLD</span></span>${cubeSVG('gold')}</div>
+        </div>
       </div>
       ${sectionsHtml}
-      <div class="band" style="margin-top:14px">OBSERVATIONS / COMMENTS <i>– Observações / Comentários</i></div>
+    </div>
+    <div class="k-obs">
+      <div class="k-obs-title">OBSERVATIONS / COMMENTS</div>
       <div class="obs-wrap"><div class="obs-box" contenteditable="true" data-ph="Comentários do aluno" data-field="comment">${esc(data.comment)}</div><button type="button" class="mic-btn" title="Ditar por voz">🎙️</button></div>
-      <div class="rc-footer-logo"><img src="${LOGO}" alt="FISK"></div>
     </div></div>`;
   $('sheetWrap').innerHTML=sheet;
   attachHandlers();

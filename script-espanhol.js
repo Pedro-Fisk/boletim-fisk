@@ -286,10 +286,40 @@ function finalCol(lbl,pk,p){return `<div class="final-box"><div class="fh"><div 
   <div class="final-line"><label>Participación</label><div class="v" id="fl-${pk}-part">${fmt(partResult(p))}</div></div>
   <div class="final-grade"><label>NOTA FINAL</label><div class="v" id="fl-${pk}-final">${fmt(finalGrade(p))}</div></div></div>`;}
 
+/* Ícones dos critérios em SVG inline: os emojis somem no PDF (html2canvas
+   não desenha a fonte de emoji colorida). */
+const IC={
+  chat:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4V5z"/></svg>',
+  sound:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" stroke="none"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg>',
+  book:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h5v16H6a2 2 0 0 0-2 2V5z"/><path d="M20 5a2 2 0 0 0-2-2h-5v16h5a2 2 0 0 1 2 2V5z"/></svg>',
+  star:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.2l-6.1 3.4 1.4-6.8-5.1-4.7 6.9-.8L12 2z"/></svg>',
+  pencil:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.2V21h3.8L17.8 10 14 6.2 3 17.2zM20.7 7.1a1 1 0 0 0 0-1.4l-2.4-2.4a1 1 0 0 0-1.4 0l-1.8 1.8 3.8 3.8 1.8-1.8z"/></svg>',
+  heart:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-9.7-9.2C.7 8.3 2.6 4.5 6.4 4.5c2 0 3.6 1.1 4.6 2.7 1-1.6 2.6-2.7 4.6-2.7 3.8 0 5.7 3.8 4.1 7.3C17.5 16.4 12 21 12 21z"/></svg>',
+  target:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg>',
+  screen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg>',
+  headphones:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>'
+};
+
+/* Ajusta o tamanho da fonte das abas verticais para caber na altura da
+   seção (e, em último caso, dá uma altura mínima ao corpo da seção). */
+function fitVtabs(){
+  document.querySelectorAll('#sheetWrap .rc-section').forEach(sec=>{
+    const body=sec.querySelector('.rc-body'), vt=sec.querySelector('.rc-vtab .vt');
+    if(!vt||!body) return;
+    const avail=body.offsetHeight-14;
+    let fs=12.5;
+    vt.style.fontSize=fs+'px';
+    let w=vt.offsetWidth;
+    if(w>avail){ fs=Math.max(8.5, fs*avail/w); vt.style.fontSize=fs+'px'; w=vt.offsetWidth; }
+    if(w>avail){ body.style.minHeight=(w+18)+'px'; }
+  });
+}
+
 function renderReport(data){
   STATE=data;
   const s=data.student||{},p1=data.p1||{},p2=data.p2||{};
-  const page1=`<div class="sheet">
+  const page1=`<div class="sheet sheet-themed sheet-es">
     <div class="rc-frame rc-head"><img class="rc-logo-img" src="${LOGO}" alt="FISK">
       <div class="rc-head-fields">
         <div class="hf"><label>Nombre:</label><div class="rc-fill">${esc(s.name)}</div></div>
@@ -299,32 +329,32 @@ function renderReport(data){
     <div class="rc-outer">
       <div class="rc-title"><h2>INFORME DE PROGRESO DE APRENDIZAJE</h2><p>Relatório de Progresso de Aprendizagem</p></div>
       <div class="rc-datehead"><div class="rc-datebox">Fecha: <span class="dval">${esc(p1.date)}</span></div><div class="rc-datebox">Fecha: <span class="dval">${esc(p2.date)}</span></div></div>
-      <div class="rc-section"><div class="rc-vtab">PRUEBAS</div><div class="rc-body">
+      <div class="rc-section"><div class="rc-vtab"><span class="vt">PRUEBAS</span></div><div class="rc-body">
         <div class="testrow"><div class="txt"><b>Prueba de Comprensión Auditiva</b><i>Prova de compreensão auditiva</i></div>${testCell('p1','listeningTest',num(p1.listeningTest))}${testCell('p2','listeningTest',num(p2.listeningTest))}</div>
         <div class="testrow"><div class="txt"><b>Prueba escrita</b><i>Prova de leitura e escrita</i></div>${testCell('p1','writtenTest',num(p1.writtenTest))}${testCell('p2','writtenTest',num(p2.writtenTest))}</div>
       </div></div>
-      <div class="rc-section"><div class="rc-vtab">RENDIMIENTO ORAL</div><div class="rc-body">
-        ${critRow('💬','Puede expresarse correctamente en español','Consegue se expressar adequadamente em Espanhol','fluencia','fluencia',p1,p2)}
-        ${critRow('🎯','Muestra habilidades orales esperadas al nivel','Produz oralmente de acordo com o nível','expresividad','expresividad',p1,p2)}
-        ${critRow('🔊','Tiene pronunciación y entonación adecuadas','Tem pronúncia e entonação adequadas','pronunciacion','pronunciación',p1,p2)}
-        ${critRow('🔤','Muestra progreso en el uso del vocabulario','Mostra crescimento de uso de vocabulário','vocabulario','vocabulario',p1,p2)}
+      <div class="rc-section"><div class="rc-vtab"><span class="vt">RENDIMIENTO ORAL</span></div><div class="rc-body">
+        ${critRow(IC.chat,'Puede expresarse correctamente en español','Consegue se expressar adequadamente em Espanhol','fluencia','fluencia',p1,p2)}
+        ${critRow(IC.target,'Muestra habilidades orales esperadas al nivel','Produz oralmente de acordo com o nível','expresividad','expresividad',p1,p2)}
+        ${critRow(IC.sound,'Tiene pronunciación y entonación adecuadas','Tem pronúncia e entonação adequadas','pronunciacion','pronunciación',p1,p2)}
+        ${critRow(IC.book,'Muestra progreso en el uso del vocabulario','Mostra crescimento de uso de vocabulário','vocabulario','vocabulario',p1,p2)}
         <div class="results-row"><div class="results-lab">Resultados <span style="font-size:11px;font-weight:600">(média)</span></div><div class="results-val" id="oral-p1">${fmt(oralResult(p1))}</div><div class="results-val" id="oral-p2">${fmt(oralResult(p2))}</div></div>
       </div></div>
-      <div class="rc-section"><div class="rc-vtab">PARTICIPACIÓN</div><div class="rc-body">
-        ${critRow('❤️','Presenta buen comportamiento','Apresenta bom comportamento','comportamiento','comportamiento',p1,p2)}
-        ${critRow('⭐','Es interesado y participativo','É interessado(a) e participativo(a)','social','social',p1,p2)}
-        ${critRow('📝','Se dedica a las actividades propuestas','Dedica-se às atividades propostas','tarea','tarea',p1,p2)}
-        ${critRow('🖥️','Utiliza las plataformas en línea para estudiar','Usa as plataformas online para estudar','cyber','cyber',p1,p2)}
+      <div class="rc-section"><div class="rc-vtab"><span class="vt">PARTICIPACIÓN</span></div><div class="rc-body">
+        ${critRow(IC.heart,'Presenta buen comportamiento','Apresenta bom comportamento','comportamiento','comportamiento',p1,p2)}
+        ${critRow(IC.star,'Es interesado y participativo','É interessado(a) e participativo(a)','social','social',p1,p2)}
+        ${critRow(IC.pencil,'Se dedica a las actividades propuestas','Dedica-se às atividades propostas','tarea','tarea',p1,p2)}
+        ${critRow(IC.screen,'Utiliza las plataformas en línea para estudiar','Usa as plataformas online para estudar','cyber','cyber',p1,p2)}
         <div class="results-row"><div class="results-lab">Resultados <span style="font-size:11px;font-weight:600">(média)</span></div><div class="results-val" id="part-p1">${fmt(partResult(p1))}</div><div class="results-val" id="part-p2">${fmt(partResult(p2))}</div></div>
       </div></div>
-      <div class="rc-section"><div class="rc-vtab">USO DEL LENGUAJE</div><div class="rc-body">
+      <div class="rc-section"><div class="rc-vtab"><span class="vt">USO DEL LENGUAJE</span></div><div class="rc-body">
         ${medalHead()}
-        ${medalRow('🎧','Escucha con entendimiento','Escuta e compreende o que é falado em espanhol','escucha',p1,p2)}
-        ${medalRow('📖','Comprende textos escritos en Español','Lê e compreende a leitura em espanhol','comprende',p1,p2)}
-        ${medalRow('✅','Utiliza gramática y estructuras españolas','Usa corretamente as estruturas do idioma','gramatica',p1,p2)}
+        ${medalRow(IC.headphones,'Escucha con entendimiento','Escuta e compreende o que é falado em espanhol','escucha',p1,p2)}
+        ${medalRow(IC.book,'Comprende textos escritos en Español','Lê e compreende a leitura em espanhol','comprende',p1,p2)}
+        ${medalRow(IC.check,'Utiliza gramática y estructuras españolas','Usa corretamente as estruturas do idioma','gramatica',p1,p2)}
       </div></div>
     </div></div>`;
-  const page2=`<div class="sheet"><div class="rc-outer">
+  const page2=`<div class="sheet sheet-themed sheet-es"><div class="rc-outer">
       <div class="band">RESULTADOS FINALES <i>– Resultados Finais</i></div>
       <div class="final-cols">${finalCol('1ª','p1',p1)}${finalCol('2ª','p2',p2)}</div>
 
@@ -345,6 +375,7 @@ function renderReport(data){
     </div></div>`;
   $('sheetWrap').innerHTML=page1+page2;
   attachHandlers();
+  fitVtabs();
 }
 
 function attachHandlers(){
