@@ -492,19 +492,19 @@ function fileBase(){
 const EDIT_SELECTOR='.gval,.tval,.results-val,.final-line .v,.final-grade .v';
 
 $('pdfBtn').onclick=async()=>{
-  const btn=$('pdfBtn'); const label=btn.textContent;
+  const btn=$('pdfBtn'); const label=btn.innerHTML;
   if(!window.PDFLib || !window.html2canvas){
     // fallback: impressão comum se as bibliotecas não carregaram
     const t=document.title; document.title=fileBase(); window.print(); setTimeout(()=>{document.title=t;},1500); return;
   }
-  btn.disabled=true; btn.textContent='⏳ Gerando PDF...';
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Gerando PDF...';
   try{
     await generateEditablePDF();
   }catch(e){
     console.error('PDF editável falhou:',e);
-    btn.textContent='⏳ Abrindo impressão...';
+    btn.innerHTML='<span class="spinner"></span> Abrindo impressão...';
     const t=document.title; document.title=fileBase(); window.print(); setTimeout(()=>{document.title=t;},1500);
-  }finally{ btn.disabled=false; btn.textContent=label; }
+  }finally{ btn.disabled=false; btn.innerHTML=label; }
 };
 
 async function generateEditablePDF(){
@@ -673,25 +673,7 @@ function hasUnsavedWork(){
   if($('preview').style.display==='block') return true;
   return gradesFilledCount()>0 || !!($('s_name').value||'').trim() || !!($('s_level').value||'').trim() || !!($('notes').value||'').trim() || chosenScore!==null;
 }
-window.addEventListener('beforeunload', e=>{
-  if(!hasUnsavedWork()) return;
-  e.preventDefault();
-  e.returnValue=''; // o texto é definido pelo próprio navegador, não é customizável
-});
+fiskInitBeforeUnloadGuard(hasUnsavedWork);
 
 /* ============ MODO ESCURO (só afeta a tela de preenchimento) ============ */
-function applyTheme(dark){
-  document.body.classList.toggle('dark',dark);
-  $('themeToggle').textContent=dark?'☀️ Modo claro':'🌙 Modo escuro';
-}
-function initTheme(){
-  let saved=null; try{ saved=localStorage.getItem('fisk_theme'); }catch(e){}
-  const dark = saved ? saved==='dark' : window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  applyTheme(dark);
-}
-$('themeToggle').onclick=()=>{
-  const dark=!document.body.classList.contains('dark');
-  applyTheme(dark);
-  try{ localStorage.setItem('fisk_theme', dark?'dark':'light'); }catch(e){}
-};
-initTheme();
+fiskInitThemeToggle('themeToggle');

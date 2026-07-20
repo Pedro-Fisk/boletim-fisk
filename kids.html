@@ -7,37 +7,46 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/pedro-fisk/fisk-hub@v1.0.0/assets/fisk-shared.css">
 <link rel="stylesheet" href="style.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 </head>
 <body>
 
+<div id="confirmClear" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-title">Limpar todos os campos?</div>
+    <p class="modal-text">Isso apaga tudo que você preencheu nesta tela para começar um novo aluno. O seu nome de professor(a) é mantido. Deseja continuar?</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" id="cancelClear">Cancelar</button>
+      <button class="btn btn-gold btn-sm" id="confirmClearBtn">Sim, limpar</button>
+    </div>
+  </div>
+</div>
+<div id="draftModal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-title">Encontramos um rascunho salvo</div>
+    <p class="modal-text">Você tinha um boletim em andamento, salvo automaticamente às <b id="draftTime"></b>. Quer continuar de onde parou?</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" id="draftDiscardBtn">Descartar</button>
+      <button class="btn btn-gold btn-sm" id="draftRestoreBtn">Continuar rascunho</button>
+    </div>
+  </div>
+</div>
+
+<header class="hero">
+  <a class="back-link" href="https://pedro-fisk.github.io/fisk-hub/">&larr; Voltar ao Hub</a>
+  <button type="button" class="theme-toggle" id="themeToggle" aria-label="Alternar modo escuro" title="Alternar modo escuro">🌙</button>
+  <img id="brandLogo" class="hero-logo" alt="FISK Taubaté · Caçapava">
+  <h1>Gerador de Boletim</h1>
+  <p>Kids e Teens &middot; Versão offline (sem custo)</p>
+</header>
+
 <div class="app" id="app">
-  <div id="confirmClear" class="modal-overlay">
-    <div class="modal-card">
-      <div class="modal-title">Limpar todos os campos?</div>
-      <p class="modal-text">Isso apaga tudo que você preencheu nesta tela para começar um novo aluno. O seu nome de professor(a) é mantido. Deseja continuar?</p>
-      <div class="modal-actions">
-        <button class="btn btn-ghost btn-sm" id="cancelClear">Cancelar</button>
-        <button class="btn btn-gold btn-sm" id="confirmClearBtn">Sim, limpar</button>
-      </div>
-    </div>
+  <div class="row-inline" style="justify-content:flex-end;margin-bottom:14px">
+    <button class="btn btn-ghost btn-sm" id="clearBtn">🧹 Limpar campos</button>
   </div>
-  <div id="draftModal" class="modal-overlay">
-    <div class="modal-card">
-      <div class="modal-title">Encontramos um rascunho salvo</div>
-      <p class="modal-text">Você tinha um boletim em andamento, salvo automaticamente às <b id="draftTime"></b>. Quer continuar de onde parou?</p>
-      <div class="modal-actions">
-        <button class="btn btn-ghost btn-sm" id="draftDiscardBtn">Descartar</button>
-        <button class="btn btn-gold btn-sm" id="draftRestoreBtn">Continuar rascunho</button>
-      </div>
-    </div>
-  </div>
-
-  <a class="back-link" href="https://pedro-fisk.github.io/fisk-hub/">← Voltar ao Hub</a>
-
-  <div class="brandbar"><img id="brandLogo" alt="FISK"><div><h1>Gerador de Boletim</h1><p class="sub">Kids e Teens · Versão offline (sem custo)</p></div><button class="btn btn-ghost btn-sm" id="themeToggle" style="margin-left:auto">🌙 Modo escuro</button><button class="btn btn-ghost btn-sm" id="clearBtn">🧹 Limpar campos</button></div>
 
   <div class="progress-wrap" id="progressWrap">
     <div class="progress-head"><span>📊 Progresso do boletim</span><span class="pct" id="progressPct">0%</span></div>
@@ -97,7 +106,7 @@
 
   <div class="card">
     <div style="margin-top:4px" class="row-inline">
-      <button class="btn btn-primary" id="generate">Montar boletim →</button>
+      <button class="btn btn-generate" id="generate">Montar boletim →</button>
       <span id="genStatus" class="status"></span>
     </div>
   </div>
@@ -107,11 +116,16 @@
   <div class="toolbar">
     <button class="btn btn-ghost btn-sm" id="backBtn">← Voltar</button>
     <span class="grow note">Clique nos ícones e no texto para ajustar. Baixe o PDF para salvar ou imprimir.</span>
-    <button class="btn btn-gold btn-sm" id="pdfBtn">🖨️ Baixar PDF</button>
+    <button class="btn btn-generate btn-sm" id="pdfBtn">🖨️ Baixar PDF</button>
   </div>
   <div class="sheet-wrap" id="sheetWrap"></div>
 </div>
 
+<footer>
+  <p>Ferramenta desenvolvida exclusivamente para uso interno das escolas Fisk. A utilização deste sistema e de seu conteúdo por pessoas ou instituições não autorizadas, incluindo professores particulares, é proibida. Desenvolvido por @fiskcacapava e @taubatefisk</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/gh/pedro-fisk/fisk-hub@v1.0.0/assets/fisk-shared.js"></script>
 <script src="logo.js"></script>
 <script src="mic.js"></script>
 <script src="script-kids.js"></script>
