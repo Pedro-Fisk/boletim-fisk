@@ -31,7 +31,10 @@ function attachDictation(btn, target, onChange){
   rec.onerror = e=>{
     listening=false; btn.classList.remove('listening');
     if(e.error==='not-allowed' || e.error==='service-not-allowed'){
-      alert('Permissão de microfone negada. Habilite o microfone para este site nas configurações do navegador para usar o ditado por voz.');
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      alert(isIOS
+        ? 'Permissão de microfone negada.\n\nSe isso acontecer em qualquer navegador do iPhone/iPad, o mais comum é o ditado estar desligado no sistema: Ajustes > Geral > Teclado > "Habilitar Ditado".\n\nSe já estiver ligado, confira também Ajustes > [nome do navegador] > Microfone.'
+        : 'Permissão de microfone negada. Habilite o microfone para este site nas configurações do navegador para usar o ditado por voz.');
     }
   };
   rec.onresult = e=>{
