@@ -3,29 +3,7 @@ const $=id=>document.getElementById(id);
 $('brandLogo').src=LOGO;
 attachDictation($('notesMic'), $('notes'));
 attachDictation($('suggOtherMic'), $('suggOther'));
-let period='1', loadedState=null, halfSel=null, semSel=null;
-const BIM_YEAR=new Date().getFullYear();
-// o ano só entra no valor final (aparece no documento), não nos botões
-function getBimestreValue(){ return (halfSel&&semSel)?(halfSel+' do '+semSel+' semestre '+BIM_YEAR):''; }
-function setBimestre(yearStr){
-  if(!yearStr) return;
-  const mh=yearStr.match(/(Meio|Fim)/i);
-  const ms=yearStr.match(/([12]º)\s*semestre/i);
-  if(mh){ halfSel=mh[1].charAt(0).toUpperCase()+mh[1].slice(1).toLowerCase(); document.querySelectorAll('#halfToggle button').forEach(x=>x.classList.toggle('active',x.dataset.h===halfSel)); }
-  if(ms){ semSel=ms[1]; document.querySelectorAll('#semToggle button').forEach(x=>x.classList.toggle('active',x.dataset.s===semSel)); }
-}
-document.querySelectorAll('#halfToggle button').forEach(b=>b.onclick=()=>{
-  const was=b.classList.contains('active');
-  document.querySelectorAll('#halfToggle button').forEach(x=>x.classList.remove('active'));
-  if(was){ halfSel=null; } else { b.classList.add('active'); halfSel=b.dataset.h; }
-  updateProgress();
-});
-document.querySelectorAll('#semToggle button').forEach(b=>b.onclick=()=>{
-  const was=b.classList.contains('active');
-  document.querySelectorAll('#semToggle button').forEach(x=>x.classList.remove('active'));
-  if(was){ semSel=null; } else { b.classList.add('active'); semSel=b.dataset.s; }
-  updateProgress();
-});
+let period='1', loadedState=null;
 // nome do professor lembrado no navegador (preenche sozinho nos próximos boletins)
 try{ const sp=localStorage.getItem('fisk_prof_name'); if(sp)$('s_teacher').value=sp; }catch(e){}
 $('s_teacher').addEventListener('input',()=>{ try{ localStorage.setItem('fisk_prof_name',$('s_teacher').value); }catch(e){} updateProgress(); });
@@ -42,8 +20,6 @@ function clearAllFields(){
   $('perfExcelente').checked=false;
   document.querySelectorAll('.rubric .rg-nt').forEach(el=>el.classList.remove('dim'));
   document.querySelectorAll('#suggBoxes input:checked').forEach(i=>i.checked=false);
-  document.querySelectorAll('#halfToggle button,#semToggle button').forEach(b=>b.classList.remove('active'));
-  halfSel=null; semSel=null;
   document.querySelectorAll('#periodToggle button').forEach(b=>b.classList.toggle('active',b.dataset.p==='1'));
   period='1';
   $('dateMode').value='date'; $('weekPickers').style.display='none'; $('dateSpecific').style.display=''; $('dateSpecific').value='';
@@ -365,8 +341,7 @@ function updateProgress(){
   if(($('s_teacher').value||'').trim()) pct+=5;
   if(($('s_name').value||'').trim()) pct+=15;
   if(($('s_level').value||'').trim()) pct+=10;
-  if(halfSel && semSel) pct+=10;
-  pct+=(gradesFilledCount()/GRADE_FIELDS.length)*35;
+  pct+=(gradesFilledCount()/GRADE_FIELDS.length)*45;
   if(chosenScore!==null) pct+=25;
   pct=Math.round(Math.max(0,Math.min(100,pct)));
   $('progressFill').style.width=pct+'%';
@@ -378,7 +353,7 @@ updateProgress();
 function setLoadStatus(html,color){ $('loadStatus').innerHTML='<span style="color:'+(color||'#5a6b74')+';font-weight:700">'+html+'</span>'; }
 function applyLoaded(msg){
   const s=(loadedState&&loadedState.student)||{};
-  $('s_name').value=s.name||''; if(s.year){setBimestre(s.year);} $('s_level').value=s.level||'';
+  $('s_name').value=s.name||''; $('s_level').value=s.level||'';
   document.querySelectorAll('#periodToggle button').forEach(x=>x.classList.toggle('active',x.dataset.p==='2'));
   period='2';
   setLoadStatus('✓ '+(msg||('Boletim de '+(s.name||'aluno')+' carregado.'))+' Preencha a 2ª avaliação.','#1e8f4e');
@@ -464,7 +439,7 @@ $('generate').onclick=()=>{
   base.student=base.student||{};
   base.student.name=$('s_name').value||base.student.name||'';
   base.student.teacher=$('s_teacher').value||base.student.teacher||'';
-  base.student.year=getBimestreValue()||base.student.year||'';
+  base.student.year=base.student.year||'';
   base.student.level=$('s_level').value||base.student.level||'';
   base.p1=base.p1||{}; base.p2=base.p2||{};
   const pk=period==='2'?'p2':'p1';
@@ -586,7 +561,7 @@ let draftDirty=false, draftSaveTimer=null;
 function collectFormDraft(){
   return {
     stage:'form', savedAt:Date.now(), loadedState,
-    period, halfSel, semSel, chosenScore,
+    period, chosenScore,
     fields:{
       s_teacher:$('s_teacher').value, s_name:$('s_name').value, s_level:$('s_level').value,
       notes:$('notes').value, suggOther:$('suggOther').value,
@@ -643,9 +618,6 @@ function applyFormDraft(d){
   if(f.weekMonth) $('weekMonth').value=f.weekMonth;
   period=d.period||'1';
   document.querySelectorAll('#periodToggle button').forEach(b=>b.classList.toggle('active',b.dataset.p===period));
-  halfSel=d.halfSel||null; semSel=d.semSel||null;
-  document.querySelectorAll('#halfToggle button').forEach(b=>b.classList.toggle('active',b.dataset.h===halfSel));
-  document.querySelectorAll('#semToggle button').forEach(b=>b.classList.toggle('active',b.dataset.s===semSel));
   (f.suggestions||[]).forEach(k=>{ const cb=[...document.querySelectorAll('#suggBoxes input')].find(i=>i.value===k); if(cb) cb.checked=true; });
   (f.rubric||[]).forEach(r=>{ const inp=[...document.querySelectorAll('.rg-in')].find(i=>i.dataset.field===r.field); if(inp) inp.value=r.value; });
   $('perfExcelente').checked=!!f.perfExcelente;
