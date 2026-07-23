@@ -71,6 +71,24 @@
     </div>
   </div>
 
+  <div class="card" id="cardConnect">
+    <h2>🔗 Conectar ao card <span style="font-size:12px;color:var(--gray);font-weight:600">(opcional — lança a nota direto na planilha)</span></h2>
+    <p class="hint">Escolha o aluno pela turma do card: o nome e o estágio já vêm preenchidos e, ao final, a nota é lançada automaticamente na célula da planilha (média abaixo de 6 fica vermelha = gatilho da 2ª chance). Na 2ª avaliação, a 1ª é puxada do card — sem precisar subir o PDF.</p>
+    <div class="loadbox" id="cardCascade" hidden>
+      <div class="row-inline" style="gap:10px;flex-wrap:wrap;align-items:center">
+        <select id="selEscola" style="max-width:190px" disabled><option value="" disabled selected>Escola…</option></select>
+        <select id="selProf" style="max-width:210px" disabled><option value="" disabled selected>Professor(a)…</option></select>
+        <select id="selTurma" style="max-width:230px" disabled><option value="" disabled selected>Turma…</option></select>
+        <button type="button" class="btn btn-ghost btn-sm" id="btnCarregarTurma" disabled>Carregar turma</button>
+      </div>
+    </div>
+    <div id="cardAlunoWrap" hidden style="margin-top:12px">
+      <label class="fld">Aluno da turma <b id="cardTurmaNome" style="color:var(--red)"></b></label>
+      <select id="selAluno"><option value="" disabled selected>Escolha o aluno…</option></select>
+    </div>
+    <div id="cardStatus" class="status" style="margin-top:12px"></div>
+  </div>
+
   <div class="card">
     <h2>👤 Dados do aluno</h2>
     <label class="fld">Nome completo do aluno <span class="req">*</span></label>
@@ -156,6 +174,8 @@
   <div class="toolbar">
     <button class="btn btn-ghost btn-sm" id="backBtn">← Voltar</button>
     <span class="grow note">Clique nas notas para ajustar. As médias recalculam sozinhas. Baixe o PDF: ele guarda os dados para reabrir na 2ª avaliação.</span>
+    <span id="cardPushStatus" style="font-weight:700;font-size:13px"></span>
+    <button class="btn btn-ghost btn-sm" id="cardPushBtn" hidden>📤 Lançar no card</button>
     <button class="btn btn-generate btn-sm" id="pdfBtn">🖨️ Baixar PDF</button>
   </div>
   <div class="sheet-wrap" id="sheetWrap"></div>
@@ -169,5 +189,6 @@
 <script src="logo.js"></script>
 <script src="mic.js"></script>
 <script src="script.js"></script>
+<script src="card-sync.js"></script>
 </body>
 </html>
