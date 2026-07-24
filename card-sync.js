@@ -176,7 +176,7 @@
 
     sel.onchange = function () {
       if (sel.value === '__none__') {
-        cardLink = null; syncPushBtn();
+        cardLink = null; window.RAF_DO_CARD = ''; syncPushBtn();
         setStatus('Sem vínculo com o card — o boletim NÃO será lançado na planilha.');
         return;
       }
@@ -187,7 +187,10 @@
 
   /* ============ SELEÇÃO DE UM ALUNO ============ */
   function selecionarAluno(a, dados) {
-    cardLink = { escola: dados.escola, prof: dados.aba, linhaCard: a.linhaCard, book: a.book, nome: a.nome };
+    cardLink = { escola: dados.escola, prof: dados.aba, linhaCard: a.linhaCard, book: a.book, nome: a.nome, raf: a.raf || '' };
+    /* o RAF entra no NOME DO ARQUIVO do PDF (fileBase em script.js) — permite,
+       no futuro, localizar os boletins do aluno no Drive sem mexer em permissões */
+    window.RAF_DO_CARD = String(a.raf || '').trim();
     var level = (a.book || '').trim();
 
     if (a.notasAv1 && String(a.notasAv1).trim()) {
@@ -261,7 +264,7 @@
     /* 🧹 Limpar: solta o vínculo e reabre a escolha de aluno da turma */
     var clearBtn = el('confirmClearBtn');
     if (clearBtn) clearBtn.addEventListener('click', function () {
-      cardLink = null; syncPushBtn(); setPush('');
+      cardLink = null; window.RAF_DO_CARD = ''; syncPushBtn(); setPush('');
       var sel = el('selAluno'); if (sel && sel.options.length) sel.selectedIndex = 0;
     });
     syncPushBtn();

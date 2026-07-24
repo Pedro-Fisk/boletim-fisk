@@ -474,7 +474,10 @@ $('backBtn').onclick=()=>{$('preview').style.display='none';$('app').style.displ
 function fileBase(){
   const nm=(STATE&&STATE.student&&STATE.student.name)?STATE.student.name.trim():'';
   const safe=(nm||'Aluno').replace(/[\\/:*?"<>|]+/g,'').replace(/\s+/g,' ').trim();
-  return 'Report Card - '+safe;
+  // RAF no nome do arquivo (vem do vínculo com o card, via card-sync.js):
+  // identifica o boletim do aluno no Drive sem mexer no design do PDF.
+  const raf=String(window.RAF_DO_CARD||'').trim();
+  return 'Report Card - '+safe+(raf?' - '+raf:'');
 }
 /* seletor de todas as células de nota que viram campos editáveis no PDF */
 const EDIT_SELECTOR='.gval,.tval,.results-val,.final-line .v,.final-grade .v';
