@@ -68,8 +68,10 @@ async function fiskEnviarParaPasta(buttonEl, getOpts) {
     opts = (typeof getOpts === 'function') ? await getOpts() : getOpts;
     if (!opts) { buttonEl.disabled = false; buttonEl.textContent = old; return; }
     var r = await fiskSalvarNoDrive(opts);
-    buttonEl.textContent = '✓ Salvo na pasta';
-    setTimeout(function () { buttonEl.textContent = old; buttonEl.disabled = false; }, 2500);
+    // mostra ONDE salvou: a pasta é escolhida por aproximação (dia+horário no
+    // caso da turma), então o professor tem de conseguir conferir num relance
+    buttonEl.textContent = r && r.pasta ? '✓ Salvo em "' + r.pasta + '"' : '✓ Salvo na pasta';
+    setTimeout(function () { buttonEl.textContent = old; buttonEl.disabled = false; }, 4000);
     return r;
   } catch (e) {
     buttonEl.textContent = old; buttonEl.disabled = false;
