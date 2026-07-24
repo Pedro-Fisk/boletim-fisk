@@ -80,21 +80,41 @@
     return p(d.getDate()) + '/' + p(d.getMonth() + 1) + '/' + d.getFullYear();
   }
 
-  /* ---- monta a célula canônica do card a partir de STATE[pk] ---- */
+  /* ---- monta o registro legível da nota no card a partir de STATE[pk] ----
+     Formato humano (a célula fica "cortada" no card — só aparece ao clicar):
+       Lançamento de nota - dd/mm/aaaa
+       PROFESSOR
+       prova de escuta: 10
+       prova de escrita: 9
+       (linha em branco)
+       média (com todos os critérios do boletim): 9,8
+     Guarda só o essencial: escuta (A), escrita (B) e a média geral. */
   function buildCell(p, level) {
-    var linha = LETTERS.map(function (L, i) { return L + short(p[FIELDS[i]]); }).join(' ');
+    var escuta = short(p[FIELDS[0]]);   // A = prova de escuta (Listening)
+    var escrita = short(p[FIELDS[1]]);  // B = prova de escrita (Written)
+    var prof = (cardLink && cardLink.prof) || '';
     var dataStr = (p.date && String(p.date).trim()) || hoje();
-    return '[' + stageCode(level) + '] ' + dataStr + ' · média ' + fmt(finalGrade(p)) + '\n' + linha;
+    return 'Lançamento de nota - ' + dataStr + '\n' +
+           (prof ? prof + '\n' : '') +
+           'prova de escuta: ' + escuta + '\n' +
+           'prova de escrita: ' + escrita + '\n\n' +
+           'média (com todos os critérios do boletim): ' + fmt(finalGrade(p));
   }
 
-  /* ---- lê de volta a linha "A8 B7,5 ..." do card em objeto de notas ----
-     Só a ÚLTIMA linha é lida (evita casar o "A1" que existe dentro de "TRA1"). */
+  /* ---- lê de volta as notas do card ---- Aceita o formato NOVO
+     ("prova de escuta: X" / "prova de escrita: Y") e, por compatibilidade,
+     o ANTIGO ("[EST] … · média M\nA.. B.. …"). Só escuta (A) e escrita (B). */
   function parseCardNotes(cellText) {
-    var res = {};
-    var lines = String(cellText || '').split('\n');
-    var noteLine = lines[lines.length - 1];
-    var re = /(?:^|\s)([A-H])\s*([0-9]+(?:[.,][0-9]+)?)/g, m;
-    while ((m = re.exec(noteLine))) { res[LETTER2FIELD[m[1]]] = +m[2].replace(',', '.'); }
+    var res = {}, txt = String(cellText || '');
+    var mE = txt.match(/prova de escuta:\s*([0-9]+(?:[.,][0-9]+)?)/i);
+    var mW = txt.match(/prova de escrita:\s*([0-9]+(?:[.,][0-9]+)?)/i);
+    if (mE) res[LETTER2FIELD['A']] = +mE[1].replace(',', '.');
+    if (mW) res[LETTER2FIELD['B']] = +mW[1].replace(',', '.');
+    if (!mE && !mW) { // formato antigo: última linha "A.. B.."
+      var lines = txt.split('\n'), noteLine = lines[lines.length - 1];
+      var re = /(?:^|\s)([A-H])\s*([0-9]+(?:[.,][0-9]+)?)/g, m;
+      while ((m = re.exec(noteLine))) { res[LETTER2FIELD[m[1]]] = +m[2].replace(',', '.'); }
+    }
     return res;
   }
 
@@ -110,43 +130,48 @@
     sel.innerHTML = '<option value="" disabled selected>' + ph + '</option>';
     sel.disabled = true;
   }
+  /* indicador de carregamento do dropdown: '' | 'spin' | 'ok' */
+  function ind(id, estado) { var e = el(id); if (e) e.className = 'ind' + (estado ? ' ' + estado : ''); }
 
   /* ============ CASCATA STANDALONE (escola → prof → turma) ============ */
   function initCascade() {
     el('cardCascade').hidden = false;
     setStatus('Escolha escola, professor(a) e turma — os dados vêm ao vivo do card.');
-    var selEscola = el('selEscola'), selProf = el('selProf'),
-        selTurma = el('selTurma'), btn = el('btnCarregarTurma');
+    var selEscola = el('selEscola'), selProf = el('selProf'), selTurma = el('selTurma');
 
+    ind('indEscola', 'spin');
     api({ fn: 'escolas' }).then(function (j) {
       fill(selEscola, 'Escola…', (j.escolas || []).map(function (e) { return { v: e, t: e }; }));
-    }).catch(function (e) { setStatus('⚠️ ' + e.message, 'err'); });
+      ind('indEscola', 'ok');
+    }).catch(function (e) { ind('indEscola', ''); setStatus('⚠️ ' + e.message, 'err'); });
 
     selEscola.addEventListener('change', function () {
       if (!selEscola.value) return;
-      resetSel(selProf, 'Professor(a)…'); resetSel(selTurma, 'Turma…'); btn.disabled = true;
+      resetSel(selProf, 'Professor(a)…'); resetSel(selTurma, 'Turma…');
+      ind('indProf', 'spin'); ind('indTurma', '');
       api({ fn: 'profs', escola: selEscola.value }).then(function (j) {
         fill(selProf, 'Professor(a)…', (j.profs || []).map(function (p) { return { v: p, t: p }; }));
-      }).catch(function (e) { setStatus('⚠️ ' + e.message, 'err'); });
+        ind('indProf', 'ok');
+      }).catch(function (e) { ind('indProf', ''); setStatus('⚠️ ' + e.message, 'err'); });
     });
     selProf.addEventListener('change', function () {
       if (!selProf.value) return;
-      resetSel(selTurma, 'Turma…'); btn.disabled = true;
+      resetSel(selTurma, 'Turma…'); ind('indTurma', 'spin');
       api({ fn: 'turmas', escola: selEscola.value, prof: selProf.value }).then(function (j) {
         fill(selTurma, 'Turma…', (j.turmas || []).map(function (t) {
           return { v: t.linhaTitulo, t: t.titulo };
         }));
-      }).catch(function (e) { setStatus('⚠️ ' + e.message, 'err'); });
+        ind('indTurma', 'ok');
+      }).catch(function (e) { ind('indTurma', ''); setStatus('⚠️ ' + e.message, 'err'); });
     });
-    selTurma.addEventListener('change', function () { btn.disabled = !selTurma.value; });
-    btn.addEventListener('click', function () {
+    /* ao escolher a turma (último dropdown), carrega a turma AUTOMATICAMENTE
+       — sem precisar do botão "Carregar turma" (que fica oculto). */
+    selTurma.addEventListener('change', function () {
       if (!selTurma.value) return;
-      btn.disabled = true; btn.textContent = '⏳ Carregando…';
-      setStatus('🔄 Lendo a turma ao vivo…');
+      ind('indTurma', 'spin'); setStatus('🔄 Lendo a turma ao vivo…');
       api({ fn: 'turma', escola: selEscola.value, prof: selProf.value, linha: selTurma.value })
-        .then(onTurmaLoaded)
-        .catch(function (e) { setStatus('⚠️ ' + e.message, 'err'); })
-        .finally(function () { btn.disabled = false; btn.textContent = 'Carregar turma'; });
+        .then(function (d) { ind('indTurma', 'ok'); onTurmaLoaded(d); })
+        .catch(function (e) { ind('indTurma', ''); setStatus('⚠️ ' + e.message, 'err'); });
     });
   }
 

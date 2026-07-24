@@ -76,10 +76,10 @@
     <p class="hint">Escolha o aluno pela turma do card: o nome e o estágio já vêm preenchidos e, ao final, a nota é lançada automaticamente na célula da planilha (média abaixo de 6 fica vermelha = gatilho da 2ª chance). Na 2ª avaliação, a 1ª é puxada do card — sem precisar subir o PDF.</p>
     <div class="loadbox" id="cardCascade" hidden>
       <div class="row-inline" style="gap:10px;flex-wrap:wrap;align-items:center">
-        <select id="selEscola" style="max-width:190px" disabled><option value="" disabled selected>Escola…</option></select>
-        <select id="selProf" style="max-width:210px" disabled><option value="" disabled selected>Professor(a)…</option></select>
-        <select id="selTurma" style="max-width:230px" disabled><option value="" disabled selected>Turma…</option></select>
-        <button type="button" class="btn btn-ghost btn-sm" id="btnCarregarTurma" disabled>Carregar turma</button>
+        <span><select id="selEscola" style="max-width:190px" disabled><option value="" disabled selected>Escola…</option></select><span id="indEscola" class="ind"></span></span>
+        <span><select id="selProf" style="max-width:210px" disabled><option value="" disabled selected>Professor(a)…</option></select><span id="indProf" class="ind"></span></span>
+        <span><select id="selTurma" style="max-width:230px" disabled><option value="" disabled selected>Turma…</option></select><span id="indTurma" class="ind"></span></span>
+        <button type="button" class="btn btn-ghost btn-sm" id="btnCarregarTurma" hidden>Carregar turma</button>
       </div>
     </div>
     <div id="cardAlunoWrap" hidden style="margin-top:12px">

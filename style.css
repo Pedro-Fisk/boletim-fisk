@@ -279,3 +279,10 @@
   body.theme-dark #app .modal-overlay{background:rgba(0,0,0,.65)}
   body.theme-dark #app .btn-ghost{background:#141c22;color:#bcd7e6}
   body.theme-dark #app #autosaveHint{color:var(--gray)}
+
+/* indicador de carregamento (spinner → check) dos dropdowns "Conectar ao card" */
+.ind{display:inline-block;width:13px;height:13px;margin-left:.35rem;vertical-align:-2px}
+.ind.spin{border:2px solid #ececec;border-top-color:var(--red,#d81f26);border-radius:50%;
+          animation:giraInd .7s linear infinite}
+.ind.ok::after{content:'✓';color:#32a889;font-weight:900;font-size:.95rem}
+@keyframes giraInd{to{transform:rotate(360deg)}}
