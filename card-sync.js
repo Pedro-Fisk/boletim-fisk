@@ -212,10 +212,14 @@
 
   /* ============ SELEÇÃO DE UM ALUNO ============ */
   function selecionarAluno(a, dados) {
-    cardLink = { escola: dados.escola, prof: dados.aba, linhaCard: a.linhaCard, book: a.book, nome: a.nome, raf: a.raf || '' };
+    /* `turma` entra no vínculo porque é o nome da PASTA da turma no Drive
+       (o boletim é salvo em Planners <escola> → prof → turma → aluno). */
+    cardLink = { escola: dados.escola, prof: dados.aba, turma: dados.turma || '',
+                 linhaCard: a.linhaCard, book: a.book, nome: a.nome, raf: a.raf || '' };
     /* o RAF entra no NOME DO ARQUIVO do PDF (fileBase em script.js) — permite,
        no futuro, localizar os boletins do aluno no Drive sem mexer em permissões */
     window.RAF_DO_CARD = String(a.raf || '').trim();
+    window.ultimoPDF = null;   // trocou de aluno: o PDF em memória é do anterior
     var level = (a.book || '').trim();
 
     if (a.notasAv1 && String(a.notasAv1).trim()) {
@@ -273,6 +277,31 @@
 
   function syncPushBtn() {
     var b = el('cardPushBtn'); if (b) b.hidden = !cardLink;
+    syncDriveBtn();
+  }
+
+  /* ============ SALVAR NA PASTA DO ALUNO (Drive) ============
+     Só aparece com vínculo ao card (é de lá que vêm escola/professor/turma,
+     os nomes das pastas) E depois que o PDF existe (window.ultimoPDF). */
+  function syncDriveBtn() {
+    var b = el('btnDrive'); if (!b) return;
+    b.hidden = !(cardLink && window.ultimoPDF);
+  }
+  window.onPDFGerado = syncDriveBtn;   // script.js chama ao terminar de gerar
+
+  function salvarNaPasta() {
+    var pdf = window.ultimoPDF;
+    if (!pdf) { alert('Baixe o PDF primeiro — é ele que vai para a pasta.'); return; }
+    if (!cardLink) { alert('Sem vínculo com o card: escolha escola, professor(a), turma e aluno para eu saber em que pasta salvar.'); return; }
+    if (typeof fiskEnviarParaPasta !== 'function') { alert('Helper de Drive não carregou (fisk-drive.js).'); return; }
+    fiskEnviarParaPasta(el('btnDrive'), {
+      key: API_KEY, tipo: 'aluno',
+      escola: cardLink.escola, professor: cardLink.prof, turma: cardLink.turma,
+      aluno: cardLink.nome || pdf.aluno,
+      filename: pdf.filename, bytes: pdf.bytes
+    }).then(function (r) {
+      setPush('✓ Boletim salvo na pasta "' + (r && r.pasta ? r.pasta : cardLink.nome) + '".', '#1e8f4e');
+    }).catch(function () { /* o helper já avisou o professor no alert */ });
   }
 
   /* ============ BOOT ============ */
@@ -283,13 +312,17 @@
 
     var pushBtn = el('cardPushBtn');
     if (pushBtn) pushBtn.onclick = function () { pushToCard(); };
+    var driveBtn = el('btnDrive');
+    if (driveBtn) driveBtn.onclick = salvarNaPasta;
     /* ao baixar o PDF, lança automaticamente no card (idempotente) */
     var pdfBtn = el('pdfBtn');
     if (pdfBtn) pdfBtn.addEventListener('click', function () { if (cardLink) setTimeout(pushToCard, 300); });
     /* 🧹 Limpar: solta o vínculo e reabre a escolha de aluno da turma */
     var clearBtn = el('confirmClearBtn');
     if (clearBtn) clearBtn.addEventListener('click', function () {
-      cardLink = null; window.RAF_DO_CARD = ''; syncPushBtn(); setPush('');
+      /* zera também o PDF em memória: ele é de OUTRO aluno a partir daqui */
+      cardLink = null; window.RAF_DO_CARD = ''; window.ultimoPDF = null;
+      syncPushBtn(); setPush('');
       var sel = el('selAluno'); if (sel && sel.options.length) sel.selectedIndex = 0;
     });
     syncPushBtn();

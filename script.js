@@ -552,6 +552,10 @@ async function generateEditablePDF(){
   const blob=new Blob([bytes],{type:'application/pdf'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fileBase()+'.pdf';a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  /* guarda o PDF recém-gerado para o botão "Salvar na pasta do aluno" (card-sync.js) */
+  window.ultimoPDF={ bytes:bytes, filename:a.download,
+                     aluno:((STATE&&STATE.student&&STATE.student.name)||'').trim() };
+  if(typeof window.onPDFGerado==='function') window.onPDFGerado();
   clearDraft();
 }
 
