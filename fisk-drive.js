@@ -54,6 +54,41 @@ async function fiskSalvarNoDrive(opts) {
   return j;
 }
 
+/** Converte base64 (vindo do Apps Script) em Uint8Array. */
+function fiskBase64ToBytes(b64) {
+  var bin = atob(String(b64 || '')), out = new Uint8Array(bin.length);
+  for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+/**
+ * Contraparte de leitura: acha os PDFs na pasta do aluno.
+ * opts: { endpoint, key, escola, professor, turma, aluno, filename? }
+ * Sem `filename` resolve { arquivos:[{nome,url,atualizado}], pasta }.
+ * Com `filename` resolve { nome, bytes(Uint8Array) }.
+ */
+async function fiskBuscarNoDrive(opts) {
+  var endpoint = opts.endpoint || FISK_SAVE_URL;
+  if (!endpoint) { var ec = new Error('URL de busca não configurada'); ec.code = 'sem_endpoint'; throw ec; }
+  var payload = {
+    fn: 'buscarPdf', key: opts.key,
+    escola: opts.escola || '', professor: opts.professor || '',
+    turma: opts.turma || '', aluno: opts.aluno || '',
+    filename: opts.filename || ''
+  };
+  var resp = await fetch(endpoint, { method: 'POST', body: JSON.stringify(payload) });
+  var j;
+  try { j = await resp.json(); }
+  catch (e) { throw new Error('resposta inválida do servidor (o buscarPdf já foi publicado no Apps Script?)'); }
+  if (!j || j.ok !== true) {
+    var err = new Error((j && j.erro) || 'falha ao buscar no Drive');
+    err.code = (j && j.code) || '';
+    throw err;
+  }
+  if (opts.filename) return { nome: j.nome, bytes: fiskBase64ToBytes(j.dados) };
+  return { pasta: j.pasta, arquivos: j.arquivos || [] };
+}
+
 /**
  * Liga um botão ao envio para o Drive, com feedback padrão e — o mais
  * importante — NOTIFICA o professor de forma clara quando a pasta não é

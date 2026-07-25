@@ -105,15 +105,41 @@
       <div class="rg"><div class="nn">A</div><div><b>Comprensión auditiva</b> <i>(listening)</i></div><input class="rg-in" data-field="listeningTest" inputmode="decimal" placeholder="–"></div>
       <div class="rg"><div class="nn">B</div><div><b>Escrita</b> <i>(written)</i></div><input class="rg-in" data-field="writtenTest" inputmode="decimal" placeholder="–"></div>
       <div class="rgh rg-nt">Rendimiento oral</div>
-      <div class="rg rg-nt"><div class="nn">C</div><div><b>Fluencia</b></div><input class="rg-in" data-field="fluencia" inputmode="decimal" placeholder="–"></div>
-      <div class="rg rg-nt"><div class="nn">D</div><div><b>Expresividad</b></div><input class="rg-in" data-field="expresividad" inputmode="decimal" placeholder="–"></div>
-      <div class="rg rg-nt"><div class="nn">E</div><div><b>Pronunciación</b></div><input class="rg-in" data-field="pronunciacion" inputmode="decimal" placeholder="–"></div>
-      <div class="rg rg-nt"><div class="nn">F</div><div><b>Vocabulario</b></div><input class="rg-in" data-field="vocabulario" inputmode="decimal" placeholder="–"></div>
+      <div class="rg rg-nt"><div class="nn">C</div><div><b>Fluencia</b>
+        <details class="rub-help"><summary>critérios de avaliação</summary>
+          <ul>
+            <li><b>10</b> sin vacilación al hablar</li>
+            <li><b>8</b> alguna vacilación causada por problemas con el idioma</li>
+            <li><b>6</b> velocidad y fluidez muy afectadas por problemas con el idioma</li>
+            <li><b>4</b> vacilaciones y pausas frecuentes</li>
+          </ul>
+        </details>
+      </div><input class="rg-in" data-field="fluencia" inputmode="decimal" placeholder="–"></div>
+      <div class="rg rg-nt"><div class="nn">D</div><div><b>Pronunciación</b>
+        <details class="rub-help"><summary>critérios de avaliação</summary>
+          <ul>
+            <li><b>10</b> comete muy pocos errores</li>
+            <li><b>8</b> comete algunos errores, pero el habla es inteligible</li>
+            <li><b>6</b> los errores frecuentes exigen escuchar con concentración para entender</li>
+            <li><b>4</b> muy difícil de entender por problemas de pronunciación</li>
+          </ul>
+        </details>
+      </div><input class="rg-in" data-field="pronunciacion" inputmode="decimal" placeholder="–"></div>
+      <div class="rg rg-nt"><div class="nn">E</div><div><b>Vocabulario</b>
+        <details class="rub-help"><summary>critérios de avaliação</summary>
+          <ul>
+            <li><b>10</b> usa el vocabulario y las expresiones de las lecciones correctamente y con naturalidad</li>
+            <li><b>8</b> a veces usa palabras inadecuadas, pero logra corregirse</li>
+            <li><b>6</b> usa con frecuencia palabras equivocadas o las inventa cuando no las recuerda</li>
+            <li><b>4</b> el vocabulario limitado hace que el habla sea repetitiva e infantil</li>
+          </ul>
+        </details>
+      </div><input class="rg-in" data-field="vocabulario" inputmode="decimal" placeholder="–"></div>
       <div class="rgh rg-nt">Participación</div>
-      <div class="rg rg-nt"><div class="nn">G</div><div><b>Comportamiento</b></div><input class="rg-in" data-field="comportamiento" inputmode="decimal" placeholder="–"></div>
-      <div class="rg rg-nt"><div class="nn">H</div><div><b>Social</b></div><input class="rg-in" data-field="social" inputmode="decimal" placeholder="–"></div>
-      <div class="rg rg-nt"><div class="nn">I</div><div><b>Tarea</b></div><input class="rg-in" data-field="tarea" inputmode="decimal" placeholder="–"></div>
-      <div class="rg rg-nt"><div class="nn">J</div><div><b>Cyber</b></div><input class="rg-in" data-field="cyber" inputmode="decimal" placeholder="–"></div>
+      <div class="rg rg-nt"><div class="nn">F</div><div><b>Comportamiento</b></div><input class="rg-in" data-field="comportamiento" inputmode="decimal" placeholder="–"></div>
+      <div class="rg rg-nt"><div class="nn">G</div><div><b>Social</b></div><input class="rg-in" data-field="social" inputmode="decimal" placeholder="–"></div>
+      <div class="rg rg-nt"><div class="nn">H</div><div><b>Tarea</b></div><input class="rg-in" data-field="tarea" inputmode="decimal" placeholder="–"></div>
+      <div class="rg rg-nt"><div class="nn">I</div><div><b>Cyber</b></div><input class="rg-in" data-field="cyber" inputmode="decimal" placeholder="–"></div>
     </div>
     <label class="sugg-chk" style="margin-top:12px"><input type="checkbox" id="perfExcelente"><span><b>Performance excelente</b> — dá nota 10 a todos os critérios exceto os testes (A e B), marca Oro em tudo e já seleciona a frase 10 no comentário</span></label>
   </div>
@@ -122,11 +148,11 @@
     <h2>✍️ Escreva (ou fale) as notas dos alunos <span style="font-size:12px;color:var(--gray);font-weight:600">(0 a 10)</span></h2>
     <p class="hint">Escreva de forma corrida, com a palavra do critério seguida da nota. Você também pode ativar a função de ditado do seu computador e falar as notas. A página lê os números e monta o boletim. Você ajusta qualquer coisa na tela seguinte.</p>
     <div class="field-wrap">
-      <textarea id="notes" placeholder="Ex.: fluencia 8, expresividad 7, pronunciación 8, vocabulario 6, comportamiento 9, social 8, tarea 7, cyber 8, escucha 8,5, escrita 7 (também aceita por extenso: fluencia sete e meio)"></textarea>
+      <textarea id="notes" placeholder="Ex.: fluencia 8, pronunciación 8, vocabulario 6, comportamiento 9, social 8, tarea 7, cyber 8, escucha 8,5, escrita 7 (também aceita por extenso: fluencia sete e meio)"></textarea>
       <button type="button" class="mic-btn" id="notesMic" title="Ditar por voz">🎙️</button>
     </div>
     <div class="keyword-help">
-      Critérios: <code>A · escucha</code> <code>B · escrita</code> <code>C · fluencia</code> <code>D · expresividad</code> <code>E · pronunciación</code> <code>F · vocabulario</code> <code>G · comportamiento</code> <code>H · social</code> <code>I · tarea</code> <code>J · cyber</code>. Não achou alguma nota? Digite direto no boletim.
+      Critérios: <code>A · escucha</code> <code>B · escrita</code> <code>C · fluencia</code> <code>D · pronunciación</code> <code>E · vocabulario</code> <code>F · comportamiento</code> <code>G · social</code> <code>H · tarea</code> <code>I · cyber</code>. Não achou alguma nota? Digite direto no boletim.
     </div>
   </div>
 

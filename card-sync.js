@@ -220,6 +220,7 @@
        no futuro, localizar os boletins do aluno no Drive sem mexer em permissões */
     window.RAF_DO_CARD = String(a.raf || '').trim();
     window.ultimoPDF = null;   // trocou de aluno: o PDF em memória é do anterior
+    var hits = el('driveHits'); if (hits) { hits.hidden = true; hits.innerHTML = ''; }
     var level = (a.book || '').trim();
 
     if (a.notasAv1 && String(a.notasAv1).trim()) {
@@ -304,6 +305,74 @@
     }).catch(function () { /* o helper já avisou o professor no alert */ });
   }
 
+  /* ============ BUSCAR O BOLETIM DA 1ª AVALIAÇÃO NO DRIVE ============
+     Poupa o professor de procurar o PDF no Drive e subir à mão: a pasta do
+     aluno é a mesma em que o "Salvar na pasta do aluno" grava. Depende do
+     vínculo com o card (escola/professor/turma/aluno = nomes das pastas). */
+  function driveMsg(html, color) {
+    var box = el('driveHits'); if (!box) return;
+    box.hidden = false;
+    box.innerHTML = '<span style="font-weight:700;font-size:12.5px;color:' + (color || '#5a6b74') + '">' + html + '</span>';
+  }
+
+  function buscarNoDrive() {
+    if (!cardLink) {
+      driveMsg('Escolha escola, professor(a), turma e aluno em “Conectar ao card” — é de lá que eu sei em que pasta procurar.', '#c0392b');
+      return;
+    }
+    if (typeof fiskBuscarNoDrive !== 'function') { driveMsg('Helper de Drive não carregou (fisk-drive.js).', '#c0392b'); return; }
+    var btn = el('btnBuscarDrive'), old = btn ? btn.textContent : '';
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Procurando no Drive…'; }
+    var base = { key: API_KEY, escola: cardLink.escola, professor: cardLink.prof,
+                 turma: cardLink.turma, aluno: cardLink.nome };
+    driveMsg('🔄 Procurando o boletim de ' + cardLink.nome + ' na pasta do aluno…', '#0e7fb5');
+    fiskBuscarNoDrive(base).then(function (r) {
+      var arqs = r.arquivos || [];
+      if (!arqs.length) {
+        driveMsg('Nenhum PDF na pasta “' + (r.pasta || cardLink.nome) + '”. Se o boletim da 1ª avaliação não foi salvo no Drive, suba o arquivo abaixo.', '#c0392b');
+        return;
+      }
+      /* um só: baixa direto. Vários: o professor escolhe — os nomes repetem
+         entre semestres e adivinhar carregaria a avaliação errada. */
+      if (arqs.length === 1) return baixarEcarregar(base, arqs[0].nome);
+      var box = el('driveHits');
+      box.hidden = false;
+      box.innerHTML = '<div style="font-weight:700;font-size:12.5px;margin-bottom:6px">Achei na pasta “' +
+        esc(r.pasta || cardLink.nome) + '” — qual é o boletim da 1ª avaliação?</div>';
+      arqs.forEach(function (a) {
+        var b = document.createElement('button');
+        b.type = 'button'; b.className = 'btn btn-ghost btn-sm';
+        b.style.cssText = 'display:block;margin:4px 0;text-align:left';
+        b.textContent = '📄 ' + a.nome;
+        b.onclick = function () { baixarEcarregar(base, a.nome); };
+        box.appendChild(b);
+      });
+    }).catch(function (e) {
+      if (e.code === 'pasta_nao_encontrada') {
+        driveMsg('⚠️ A pasta de ' + esc(cardLink.nome) + ' não foi encontrada no drive compartilhado. ' +
+                 'Confira a pasta no Drive ou suba o PDF abaixo.' + (e.message ? ' (' + esc(e.message) + ')' : ''), '#c0392b');
+      } else {
+        driveMsg('Não deu para buscar no Drive: ' + esc(e.message || String(e)), '#c0392b');
+      }
+    }).finally(function () { if (btn) { btn.disabled = false; btn.textContent = old; } });
+  }
+
+  function baixarEcarregar(base, nome) {
+    driveMsg('⬇️ Baixando “' + esc(nome) + '”…', '#0e7fb5');
+    var opts = {}; for (var k in base) opts[k] = base[k];
+    opts.filename = nome;
+    return fiskBuscarNoDrive(opts).then(function (f) {
+      if (typeof window.ingestBoletimPDF !== 'function') throw new Error('leitor de PDF não carregou');
+      driveMsg('✓ “' + esc(nome) + '” carregado do Drive.', '#1e8f4e');
+      /* .buffer é o ArrayBuffer que o loadFromPDF/ocrPDF esperam */
+      return window.ingestBoletimPDF(f.bytes.buffer, 'do Drive');
+    }).catch(function (e) {
+      driveMsg('Não deu para abrir “' + esc(nome) + '”: ' + esc(e.message || String(e)), '#c0392b');
+    });
+  }
+
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
   /* ============ BOOT ============ */
   function boot() {
     var standalone = (window.parent === window);
@@ -314,6 +383,8 @@
     if (pushBtn) pushBtn.onclick = function () { pushToCard(); };
     var driveBtn = el('btnDrive');
     if (driveBtn) driveBtn.onclick = salvarNaPasta;
+    var buscarBtn = el('btnBuscarDrive');
+    if (buscarBtn) buscarBtn.onclick = buscarNoDrive;
     /* ao baixar o PDF, lança automaticamente no card (idempotente) */
     var pdfBtn = el('pdfBtn');
     if (pdfBtn) pdfBtn.addEventListener('click', function () { if (cardLink) setTimeout(pushToCard, 300); });
@@ -322,6 +393,7 @@
     if (clearBtn) clearBtn.addEventListener('click', function () {
       /* zera também o PDF em memória: ele é de OUTRO aluno a partir daqui */
       cardLink = null; window.RAF_DO_CARD = ''; window.ultimoPDF = null;
+      var h = el('driveHits'); if (h) { h.hidden = true; h.innerHTML = ''; }
       syncPushBtn(); setPush('');
       var sel = el('selAluno'); if (sel && sel.options.length) sel.selectedIndex = 0;
     });

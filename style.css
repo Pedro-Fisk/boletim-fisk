@@ -42,6 +42,18 @@
   .rubric .rg .nn{width:22px;height:22px;border-radius:50%;background:var(--red);color:#fff;font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center}
   .rubric .rg b{color:#33424a}
   .rubric .rg i{color:#8996a0;font-weight:400;font-style:normal;font-size:12px}
+  /* colinha de rubrica: só referência para o professor escolher a nota — nada aqui é clicável/selecionável */
+  .rub-help{margin-top:3px}
+  .rub-help > summary{display:inline-flex;align-items:center;gap:4px;cursor:pointer;list-style:none;font-size:11.5px;font-weight:700;color:var(--red);opacity:.85}
+  .rub-help > summary::-webkit-details-marker{display:none}
+  .rub-help > summary::before{content:'▸';font-size:10px}
+  .rub-help[open] > summary::before{content:'▾'}
+  .rub-help > summary:hover{opacity:1;text-decoration:underline}
+  .rub-help ul{margin:6px 0 2px;padding:8px 10px 8px 12px;list-style:none;background:#fff6f6;border:1px solid #f2dede;border-left:3px solid var(--red);border-radius:8px}
+  .rub-help li{font-size:12px;line-height:1.45;color:#5a666e;padding:2px 0}
+  .rub-help li b{display:inline-block;min-width:20px;color:var(--red)!important;font-weight:800}
+  .rubric .rg:has(.rub-help[open]){align-items:start}
+  .rubric .rg:has(.rub-help[open]) .nn,.rubric .rg:has(.rub-help[open]) .rg-in{margin-top:2px}
   .rubric .rgh{background:var(--red-pill);color:#fff;font-family:'Poppins';font-weight:700;font-size:12px;letter-spacing:.5px;padding:5px 12px;border-radius:8px;margin:8px 6px 2px}
   .rubric .rgh:first-child{margin-top:4px}
   .rubric .rg-nt.dim{opacity:.4;filter:grayscale(1);pointer-events:none}
@@ -276,6 +288,8 @@
   body.theme-dark #app .cmt-opt .tx{color:var(--text)}
   body.theme-dark #app .rubric .rg b{color:var(--text)}
   body.theme-dark #app .rg-nt.dim .rg-in{background:#241d1d;color:#7a6c6c}
+  body.theme-dark #app .rub-help ul{background:#191313;border-color:#3a2a2a}
+  body.theme-dark #app .rub-help li{color:#c9bdbd}
   body.theme-dark #app .modal-overlay{background:rgba(0,0,0,.65)}
   body.theme-dark #app .btn-ghost{background:#141c22;color:#bcd7e6}
   body.theme-dark #app #autosaveHint{color:var(--gray)}

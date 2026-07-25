@@ -121,7 +121,7 @@ function renderMedalBoxes(){
 renderMedalBoxes();
 
 /* Performance excelente: nota 10 em tudo exceto testes, Oro em tudo, e seleciona a frase 10 */
-const NONTEST_FIELDS=['fluencia','expresividad','pronunciacion','vocabulario','comportamiento','social','tarea','cyber'];
+const NONTEST_FIELDS=['fluencia','pronunciacion','vocabulario','comportamiento','social','tarea','cyber'];
 $('perfExcelente').addEventListener('change',()=>{
   const on=$('perfExcelente').checked;
   document.querySelectorAll('.rubric .rg-nt').forEach(el=>el.classList.toggle('dim',on));
@@ -167,7 +167,6 @@ const FIELD_WORDS={
   listeningTest:['escucha','listening','auditiva','comprension'],
   writtenTest:['escrita','written','writing','escrito'],
   fluencia:['fluencia','fluency','fluidez'],
-  expresividad:['expresividad','expressividade','expresivo'],
   pronunciacion:['pronunciacion','pronunciation','entonacion'],
   vocabulario:['vocabulario','vocabulary'],
   comportamiento:['comportamiento','comportamento','conducta'],
@@ -229,7 +228,7 @@ const fmt=v=>v===null?'':(+v).toFixed(1).replace('.',',');
 function clampGrade(v){ if(v===null||v===undefined||v==='')return null; const n=+String(v).replace(',','.'); if(isNaN(n))return null; return Math.max(0,Math.min(10,n)); }
 function caretEnd(el){ try{ const r=document.createRange(); r.selectNodeContents(el); r.collapse(false); const s=window.getSelection(); s.removeAllRanges(); s.addRange(r);}catch(e){} }
 function avg(arr){const a=arr.map(num).filter(x=>x!==null);if(!a.length)return null;return a.reduce((s,x)=>s+x,0)/a.length;}
-function oralResult(p){return avg([p.fluencia,p.expresividad,p.pronunciacion,p.vocabulario]);}
+function oralResult(p){return avg([p.fluencia,p.pronunciacion,p.vocabulario]);}
 function partResult(p){return avg([p.comportamiento,p.social,p.tarea,p.cyber]);}
 function finalGrade(p){return avg([num(p.listeningTest),num(p.writtenTest),oralResult(p),partResult(p)]);}
 
@@ -311,7 +310,6 @@ function renderReport(data){
       </div></div>
       <div class="rc-section"><div class="rc-vtab"><span class="vt">RENDIMIENTO ORAL</span></div><div class="rc-body">
         ${critRow(IC.chat,'Puede expresarse correctamente en español','Consegue se expressar adequadamente em Espanhol','fluencia','fluencia',p1,p2)}
-        ${critRow(IC.target,'Muestra habilidades orales esperadas al nivel','Produz oralmente de acordo com o nível','expresividad','expresividad',p1,p2)}
         ${critRow(IC.sound,'Tiene pronunciación y entonación adecuadas','Tem pronúncia e entonação adequadas','pronunciacion','pronunciación',p1,p2)}
         ${critRow(IC.book,'Muestra progreso en el uso del vocabulario','Mostra crescimento de uso de vocabulário','vocabulario','vocabulario',p1,p2)}
         <div class="results-row"><div class="results-lab">Resultados <span style="font-size:11px;font-weight:600">(média)</span></div><div class="results-val" id="oral-p1">${fmt(oralResult(p1))}</div><div class="results-val" id="oral-p2">${fmt(oralResult(p2))}</div></div>
@@ -383,7 +381,7 @@ function recalc(){['p1','p2'].forEach(pk=>{const p=STATE[pk];
 function setTxt(id,v){const el=$(id);if(el)el.textContent=v;}
 
 /* ============ CARREGAR A 1ª AVALIAÇÃO (upload do PDF do boletim) ============ */
-const GRADE_FIELDS=['fluencia','expresividad','pronunciacion','vocabulario','comportamiento','social','tarea','cyber','listeningTest','writtenTest'];
+const GRADE_FIELDS=['fluencia','pronunciacion','vocabulario','comportamiento','social','tarea','cyber','listeningTest','writtenTest'];
 const ALL_GRADABLE=GRADE_FIELDS.concat(['escucha','comprende','gramatica']);
 
 /* ============ BARRA DE PROGRESSO ============ */
@@ -458,7 +456,7 @@ async function loadFromPDF(buf){
 }
 
 /* ============ GENERATE ============ */
-const GRADE_LABELS={listeningTest:'A escucha',writtenTest:'B escrita',fluencia:'C fluencia',expresividad:'D expresividad',pronunciacion:'E pronunciación',vocabulario:'F vocabulario',comportamiento:'G comportamiento',social:'H social',tarea:'I tarea',cyber:'J cyber'};
+const GRADE_LABELS={listeningTest:'A escucha',writtenTest:'B escrita',fluencia:'C fluencia',pronunciacion:'D pronunciación',vocabulario:'E vocabulario',comportamiento:'F comportamiento',social:'G social',tarea:'H tarea',cyber:'I cyber'};
 $('generate').onclick=()=>{
   if($('perfExcelente').checked) chosenScore=10;
   const base = loadedState ? JSON.parse(JSON.stringify(loadedState)) : {student:{},p1:{},p2:{}};

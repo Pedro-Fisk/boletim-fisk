@@ -64,8 +64,14 @@
     <input type="text" id="s_teacher" placeholder="Seu nome">
     <div style="border-top:1.5px solid var(--line);margin-top:18px;padding-top:6px"></div>
     <h2 style="margin-top:10px">📂 Já começou este boletim? (2ª avaliação)</h2>
-    <p class="hint">Suba aqui o próprio PDF do boletim da 1ª avaliação (o que você gerou nesta ferramenta). A 1ª coluna é reconstruída automaticamente e você só preenche a 2ª.</p>
+    <p class="hint">Traga o próprio PDF do boletim da 1ª avaliação (o que você gerou nesta ferramenta): se ele já foi salvo na pasta do aluno, use “Buscar no Drive”; se está no seu computador, suba o arquivo. A 1ª coluna é reconstruída automaticamente e você só preenche a 2ª.</p>
     <div class="loadbox">
+      <div class="row-inline" style="gap:10px;flex-wrap:wrap;align-items:center">
+        <button type="button" class="btn btn-ghost btn-sm" id="btnBuscarDrive">🔍 Buscar no Drive</button>
+        <span style="font-size:11.5px;color:var(--gray);font-weight:600">acha o boletim na pasta do aluno — escolha o aluno em “Conectar ao card” primeiro</span>
+      </div>
+      <div id="driveHits" hidden style="margin-top:10px"></div>
+      <div style="font-size:11.5px;color:var(--gray);font-weight:700;margin:12px 0 6px">ou suba o arquivo do seu computador:</div>
       <input type="file" id="loadFile" accept=".pdf,application/pdf,.fiskjson,.json">
       <div id="loadStatus" style="margin-top:8px"></div>
     </div>
@@ -125,9 +131,36 @@
       <div class="rg"><div class="nn">A</div><div><b>Escuta / Compreensão auditiva</b> <i>(listening)</i></div><input class="rg-in" data-field="listeningTest" inputmode="decimal" placeholder="–"></div>
       <div class="rg"><div class="nn">B</div><div><b>Escrita</b> <i>(written)</i></div><input class="rg-in" data-field="writtenTest" inputmode="decimal" placeholder="–"></div>
       <div class="rgh rg-nt">Desempenho oral</div>
-      <div class="rg rg-nt"><div class="nn">C</div><div><b>Fluência</b></div><input class="rg-in" data-field="fluency" inputmode="decimal" placeholder="–"></div>
-      <div class="rg rg-nt"><div class="nn">D</div><div><b>Pronúncia</b></div><input class="rg-in" data-field="pronunciation" inputmode="decimal" placeholder="–"></div>
-      <div class="rg rg-nt"><div class="nn">E</div><div><b>Vocabulário</b></div><input class="rg-in" data-field="vocabulary" inputmode="decimal" placeholder="–"></div>
+      <div class="rg rg-nt"><div class="nn">C</div><div><b>Fluência</b>
+        <details class="rub-help"><summary>critérios de avaliação</summary>
+          <ul>
+            <li><b>10</b> no hesitation in speech</li>
+            <li><b>8</b> some hesitation caused by language problems</li>
+            <li><b>6</b> speed and fluency strongly affected by language problems</li>
+            <li><b>4</b> frequent hesitation and pauses</li>
+          </ul>
+        </details>
+      </div><input class="rg-in" data-field="fluency" inputmode="decimal" placeholder="–"></div>
+      <div class="rg rg-nt"><div class="nn">D</div><div><b>Pronúncia</b>
+        <details class="rub-help"><summary>critérios de avaliação</summary>
+          <ul>
+            <li><b>10</b> makes very few mistakes</li>
+            <li><b>8</b> makes some mistakes, but speech is intelligible</li>
+            <li><b>6</b> frequent mistakes require concentrated listening to understand</li>
+            <li><b>4</b> very hard to understand because of pronunciation problems</li>
+          </ul>
+        </details>
+      </div><input class="rg-in" data-field="pronunciation" inputmode="decimal" placeholder="–"></div>
+      <div class="rg rg-nt"><div class="nn">E</div><div><b>Vocabulário</b>
+        <details class="rub-help"><summary>critérios de avaliação</summary>
+          <ul>
+            <li><b>10</b> uses vocabulary and idioms from lessons correctly and naturally</li>
+            <li><b>8</b> sometimes uses inadequate words, but is able to correct himself / herself</li>
+            <li><b>6</b> frequently uses wrong words or invents them when not able to remember</li>
+            <li><b>4</b> limited vocabulary makes speech repetitive and childish</li>
+          </ul>
+        </details>
+      </div><input class="rg-in" data-field="vocabulary" inputmode="decimal" placeholder="–"></div>
       <div class="rgh rg-nt">Participação</div>
       <div class="rg rg-nt"><div class="nn">F</div><div><b>Participação</b></div><input class="rg-in" data-field="participation" inputmode="decimal" placeholder="–"></div>
       <div class="rg rg-nt"><div class="nn">G</div><div><b>Dedicação</b></div><input class="rg-in" data-field="dedication" inputmode="decimal" placeholder="–"></div>

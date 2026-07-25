@@ -360,6 +360,20 @@ function applyLoaded(msg){
   updateProgress();
 }
 
+/* ingestão de um boletim já existente — mesmo caminho para o upload manual e
+   para o PDF que o card-sync baixa da pasta do aluno no Drive */
+async function ingestBoletimPDF(buf,origem){
+  setLoadStatus('Lendo o PDF'+(origem?' '+origem:'')+'...','#0e7fb5');
+  const res=await loadFromPDF(buf);
+  if(res){ loadedState=res.state; applyLoaded('Dados lidos do PDF ('+res.method+(origem?', '+origem:'')+').'); return; }
+  // sem dados embutidos nem campos -> OCR
+  setLoadStatus('Sem dados embutidos. Lendo as notas por OCR, aguarde...','#0e7fb5');
+  loadedState=await ocrPDF(buf);
+  applyLoaded('Notas lidas por OCR. IMPORTANTE: confira todas as notas na tela seguinte!');
+}
+window.ingestBoletimPDF=ingestBoletimPDF;
+window.setLoadStatus=setLoadStatus;
+
 $('loadFile').addEventListener('change',async e=>{
   const f=e.target.files[0]; if(!f)return;
   const nm=(f.name||'').toLowerCase();
@@ -367,15 +381,7 @@ $('loadFile').addEventListener('change',async e=>{
     if(nm.endsWith('.fiskjson')||nm.endsWith('.json')){
       loadedState=JSON.parse(await f.text()); applyLoaded('Arquivo carregado.'); return;
     }
-    // PDF
-    setLoadStatus('Lendo o PDF...','#0e7fb5');
-    const buf=await f.arrayBuffer();
-    const res=await loadFromPDF(buf);
-    if(res){ loadedState=res.state; applyLoaded('Dados lidos do PDF ('+res.method+').'); return; }
-    // sem dados embutidos nem campos -> OCR
-    setLoadStatus('Sem dados embutidos. Lendo as notas por OCR, aguarde...','#0e7fb5');
-    loadedState=await ocrPDF(buf);
-    applyLoaded('Notas lidas por OCR. IMPORTANTE: confira todas as notas na tela seguinte!');
+    await ingestBoletimPDF(await f.arrayBuffer());
   }catch(err){
     setLoadStatus('Não consegui ler este arquivo ('+err.message+'). Tente o PDF gerado por esta ferramenta.','#c0392b');
   }
