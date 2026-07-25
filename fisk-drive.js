@@ -114,9 +114,20 @@ async function fiskEnviarParaPasta(buttonEl, getOpts) {
     if (e.code === 'sem_endpoint') {
       alert('⚙️ O salvamento no Drive ainda não foi configurado (FISK_SAVE_URL em fisk-drive.js).');
     } else if (e.code === 'pasta_nao_encontrada') {
-      alert('⚠️ ATENÇÃO: a pasta ' + ondeAlvo + ' NÃO foi encontrada no drive compartilhado.\n\n' +
-            'O boletim NÃO foi salvo. Guarde o PDF que você baixou ou ' +
-            'confira/crie a pasta no Drive e tente de novo.' + (e.message ? '\n\n(' + e.message + ')' : ''));
+      /* o aviso antigo ("confira/crie a pasta") virava beco sem saída: não dizia
+         ONDE a busca acontece nem por que costuma falhar. A causa mais comum é
+         aluno que trocou de professor(a)/turma no semestre — a pasta dele segue
+         na pasta do professor(a) antigo, e a busca só olha a do card. */
+      alert('⚠️ O documento NÃO foi salvo no Drive.\n\n' +
+            'Não existe pasta ' + ondeAlvo + ' dentro da pasta do professor(a) que está ' +
+            'selecionado em "Conectar ao card" — é só ali que eu procuro.\n\n' +
+            'O que costuma resolver:\n' +
+            '• se o aluno trocou de professor(a) ou turma, veja se o card está com o ' +
+            'professor(a) certo e tente de novo;\n' +
+            '• se a turma é nova, crie a pasta ' + ondeAlvo + ' dentro da pasta da turma ' +
+            'no drive compartilhado, com o nome completo dele, e clique de novo.\n\n' +
+            'O PDF que você baixou está no seu computador — nada foi perdido.' +
+            (e.message ? '\n\n(detalhe do servidor: ' + e.message + ')' : ''));
     } else {
       alert('Não deu para salvar no Drive: ' + (e.message || e));
     }
