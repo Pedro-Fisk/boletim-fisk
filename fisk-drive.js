@@ -86,7 +86,7 @@ async function fiskBuscarNoDrive(opts) {
     throw err;
   }
   if (opts.filename) return { nome: j.nome, bytes: fiskBase64ToBytes(j.dados) };
-  return { pasta: j.pasta, arquivos: j.arquivos || [] };
+  return { pasta: j.pasta, arquivos: j.arquivos || [], outros: j.outros || 0 };
 }
 
 /**

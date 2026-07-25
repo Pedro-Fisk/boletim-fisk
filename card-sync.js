@@ -329,7 +329,11 @@
     fiskBuscarNoDrive(base).then(function (r) {
       var arqs = r.arquivos || [];
       if (!arqs.length) {
-        driveMsg('Nenhum PDF na pasta “' + (r.pasta || cardLink.nome) + '”. Se o boletim da 1ª avaliação não foi salvo no Drive, suba o arquivo abaixo.', '#c0392b');
+        /* a busca só lista os boletins gerados aqui; outros PDFs da pasta são
+           contados para o professor entender por que não apareceram */
+        driveMsg('Nenhum boletim desta ferramenta na pasta “' + esc(r.pasta || cardLink.nome) + '”' +
+                 (r.outros ? ' (há ' + r.outros + ' outro(s) PDF lá, de outras origens — esses precisam ser subidos à mão)' : '') +
+                 '. Suba o arquivo abaixo.', '#c0392b');
         return;
       }
       /* um só: baixa direto. Vários: o professor escolhe — os nomes repetem
