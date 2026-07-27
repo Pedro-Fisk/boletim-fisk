@@ -2,59 +2,64 @@
      .hero, .btn, .btn-generate, .modal-*, .spinner, .mic-btn e o rodapé
      padrão vêm de fisk-shared.css. Aqui só ficam os tokens e estilos
      específicos do gerador de boletim (formulário e a folha impressa). */
-  :root{--red-soft:#fbe6e6;--red-pill:#a5151a;--line:#e3b3b5;--text:#1f1c1c;--bronze:#c8843c;--silver:#9aa2a8;}
+  /* Chrome do formulário em AZUL ESCURO (mesma família da folha de jovens e
+     adultos). O vermelho fica para a marca FISK e para erro — em contexto
+     acadêmico ele lê como "errado". A folha impressa não muda: cada uma
+     redefine as cores no próprio escopo (.sheet-adults/.sheet-es/.sheet-kids2). */
+  :root{--ui:#2b4d70;--ui-dark:#223e5a;--ui-soft:#e9eff5;--ui-pill:#1d3349;
+        --line:#c3d3e0;--text:#1f1c1c;--bronze:#c8843c;--silver:#9aa2a8;}
   .app{max-width:820px;margin:0 auto;padding:28px 20px 80px;}
-  .progress-wrap{position:sticky;top:0;z-index:60;background:#fff;border:2px solid var(--line);border-radius:14px;padding:10px 16px;margin-bottom:18px;box-shadow:0 4px 14px rgba(216,31,38,.08)}
-  .progress-head{display:flex;justify-content:space-between;align-items:center;font-family:'Poppins';font-weight:700;font-size:13px;color:var(--red-dark);margin-bottom:7px}
-  .progress-head .pct{color:var(--red);font-size:14px}
-  .progress-track{background:var(--red-soft);border-radius:20px;height:10px;overflow:hidden}
-  .progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--red),var(--red-pill));border-radius:20px;transition:width .35s ease}
+  .progress-wrap{position:sticky;top:0;z-index:60;background:#fff;border:2px solid var(--line);border-radius:14px;padding:10px 16px;margin-bottom:18px;box-shadow:0 4px 14px rgba(43,77,112,.08)}
+  .progress-head{display:flex;justify-content:space-between;align-items:center;font-family:'Poppins';font-weight:700;font-size:13px;color:var(--ui-dark);margin-bottom:7px}
+  .progress-head .pct{color:var(--ui);font-size:14px}
+  .progress-track{background:var(--ui-soft);border-radius:20px;height:10px;overflow:hidden}
+  .progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--ui),var(--ui-pill));border-radius:20px;transition:width .35s ease}
   .progress-wrap.done{border-color:#3a9d5d}
   .progress-wrap.done .progress-fill{background:linear-gradient(90deg,#3a9d5d,#2e8b57)}
   .progress-wrap.done .progress-head .pct{color:#1e8f4e}
-  .modal-title{color:var(--red-dark)}
-  .card{background:#fff;border:2px solid var(--line);border-radius:16px;padding:20px 22px;margin-bottom:18px;box-shadow:0 4px 14px rgba(216,31,38,.06)}
-  .card h2{font-family:'Poppins';font-weight:700;font-size:16px;margin:0 0 4px;color:var(--red-dark)}
+  .modal-title{color:var(--ui-dark)}
+  .card{background:#fff;border:2px solid var(--line);border-radius:16px;padding:20px 22px;margin-bottom:18px;box-shadow:0 4px 14px rgba(43,77,112,.06)}
+  .card h2{font-family:'Poppins';font-weight:700;font-size:16px;margin:0 0 4px;color:var(--ui-dark)}
   .card .hint{color:var(--gray);font-size:13px;margin:0 0 14px}
-  .req{color:var(--red-dark);font-weight:800;font-size:12px}
+  .req{color:var(--ui-dark);font-weight:800;font-size:12px}
   label.fld{display:block;font-weight:700;font-size:13px;color:var(--gray);margin:12px 0 5px}
   input[type=text],input[type=date],textarea,select{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 13px;font-family:inherit;font-size:14.5px;color:var(--text);background:#fdffff;outline:none}
-  input:focus,textarea:focus,select:focus{border-color:var(--red)}
+  input:focus,textarea:focus,select:focus{border-color:var(--ui)}
   #dateSpecific{min-width:140px}
   textarea{resize:vertical;line-height:1.5}
   #notes{min-height:120px;font-size:15px}
   #comment{min-height:120px;font-size:15px}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .pill-toggle{display:inline-flex;background:var(--red-soft);border-radius:10px;padding:4px;gap:4px;flex-wrap:wrap}
+  .pill-toggle{display:inline-flex;background:var(--ui-soft);border-radius:10px;padding:4px;gap:4px;flex-wrap:wrap}
   .pill-toggle button{border:none;background:transparent;padding:8px 16px;border-radius:8px;font-family:'Poppins';font-weight:600;font-size:13.5px;color:var(--gray);cursor:pointer}
-  .pill-toggle button.active{background:var(--red);color:#fff}
+  .pill-toggle button.active{background:var(--ui);color:#fff}
   .status{margin-top:14px;font-size:14px;font-weight:600}
   .status.err{color:#c0392b}.status.ok{color:#1e8f4e}
-  .loadbox{background:#fdf4f4;border:1.5px dashed var(--red);border-radius:12px;padding:14px 16px;font-size:13.5px;color:var(--gray)}
-  .keyword-help{font-size:12.5px;color:var(--gray);background:var(--red-soft);border-radius:8px;padding:10px 12px;margin-top:10px;line-height:1.6}
+  .loadbox{background:#f2f7fb;border:1.5px dashed var(--ui);border-radius:12px;padding:14px 16px;font-size:13.5px;color:var(--gray)}
+  .keyword-help{font-size:12.5px;color:var(--gray);background:var(--ui-soft);border-radius:8px;padding:10px 12px;margin-top:10px;line-height:1.6}
   .keyword-help code{background:#fff;border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:12px}
-  .rubric{background:#fffbfb;border:1.5px solid var(--line);border-radius:12px;padding:4px 2px}
+  .rubric{background:#fbfdff;border:1.5px solid var(--line);border-radius:12px;padding:4px 2px}
   .rubric .rg{display:grid;grid-template-columns:22px 1fr 58px;gap:8px;padding:7px 12px;font-size:13px;align-items:center}
-  .rg-in{border:1.5px solid var(--line);border-radius:8px;padding:5px 4px;text-align:center;font-size:14px;font-weight:800;color:#40120f;font-family:'Poppins';width:100%;outline:none;background:#fffcfc}
-  .rg-in:focus{border-color:var(--red)}
+  .rg-in{border:1.5px solid var(--line);border-radius:8px;padding:5px 4px;text-align:center;font-size:14px;font-weight:800;color:#1d3349;font-family:'Poppins';width:100%;outline:none;background:#fcfeff}
+  .rg-in:focus{border-color:var(--ui)}
   .rg-nt.dim .rg-in{background:#eceff1;color:#9aa7ae}
   .rubric .rg + .rg{border-top:1px solid #f7e8e8}
-  .rubric .rg .nn{width:22px;height:22px;border-radius:50%;background:var(--red);color:#fff;font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center}
+  .rubric .rg .nn{width:22px;height:22px;border-radius:50%;background:var(--ui);color:#fff;font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center}
   .rubric .rg b{color:#33424a}
   .rubric .rg i{color:#8996a0;font-weight:400;font-style:normal;font-size:12px}
   /* colinha de rubrica: só referência para o professor escolher a nota — nada aqui é clicável/selecionável */
   .rub-help{margin-top:3px}
-  .rub-help > summary{display:inline-flex;align-items:center;gap:4px;cursor:pointer;list-style:none;font-size:11.5px;font-weight:700;color:var(--red);opacity:.85}
+  .rub-help > summary{display:inline-flex;align-items:center;gap:4px;cursor:pointer;list-style:none;font-size:11.5px;font-weight:700;color:var(--ui);opacity:.85}
   .rub-help > summary::-webkit-details-marker{display:none}
   .rub-help > summary::before{content:'▸';font-size:10px}
   .rub-help[open] > summary::before{content:'▾'}
   .rub-help > summary:hover{opacity:1;text-decoration:underline}
-  .rub-help ul{margin:6px 0 2px;padding:8px 10px 8px 12px;list-style:none;background:#fff6f6;border:1px solid #f2dede;border-left:3px solid var(--red);border-radius:8px}
+  .rub-help ul{margin:6px 0 2px;padding:8px 10px 8px 12px;list-style:none;background:#f4f9fd;border:1px solid #cfe0ee;border-left:3px solid var(--ui);border-radius:8px}
   .rub-help li{font-size:12px;line-height:1.45;color:#5a666e;padding:2px 0}
-  .rub-help li b{display:inline-block;min-width:20px;color:var(--red)!important;font-weight:800}
+  .rub-help li b{display:inline-block;min-width:20px;color:var(--ui)!important;font-weight:800}
   .rubric .rg:has(.rub-help[open]){align-items:start}
   .rubric .rg:has(.rub-help[open]) .nn,.rubric .rg:has(.rub-help[open]) .rg-in{margin-top:2px}
-  .rubric .rgh{background:var(--red-pill);color:#fff;font-family:'Poppins';font-weight:700;font-size:12px;letter-spacing:.5px;padding:5px 12px;border-radius:8px;margin:8px 6px 2px}
+  .rubric .rgh{background:var(--ui-pill);color:#fff;font-family:'Poppins';font-weight:700;font-size:12px;letter-spacing:.5px;padding:5px 12px;border-radius:8px;margin:8px 6px 2px}
   .rubric .rgh:first-child{margin-top:4px}
   .rubric .rg-nt.dim{opacity:.4;filter:grayscale(1);pointer-events:none}
   .rubric .rgh.rg-nt.dim{background:#c3ccd1}
@@ -62,20 +67,24 @@
   .rg-nt.dim .tag10{display:inline}
   .tag10{display:none;font-size:11px;font-weight:800;color:#3a9d5d;margin-left:6px}
   .cmt-opt{display:grid;grid-template-columns:40px 1fr;gap:12px;align-items:center;border:1.5px solid var(--line);border-radius:10px;padding:9px 11px;margin-bottom:7px;cursor:pointer;transition:.12s}
-  .cmt-opt:hover{border-color:var(--red)}
-  .cmt-opt.on{border-color:var(--red);background:var(--red-soft);box-shadow:0 0 0 2px rgba(216,31,38,.18)}
+  .cmt-opt:hover{border-color:var(--ui)}
+  .cmt-opt.on{border-color:var(--ui);background:var(--ui-soft);box-shadow:0 0 0 2px rgba(43,77,112,.18)}
   .cmt-opt .sc{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:'Poppins';font-weight:800;color:#fff;font-size:15px}
   .cmt-opt .tx{font-size:12.5px;color:#42535c;line-height:1.4}
   .capture-hide{color:transparent!important}
   .sugg-chk{display:flex;align-items:center;gap:10px;border:1.5px solid var(--line);border-radius:10px;padding:11px 13px;margin-bottom:7px;cursor:pointer;font-size:14px;color:#42535c}
-  .sugg-chk:hover{border-color:var(--red)}
-  .sugg-chk input{width:18px;height:18px;accent-color:var(--red);cursor:pointer}
-  .sugg-chk b{color:var(--red-dark)}
+  .sugg-chk:hover{border-color:var(--ui)}
+  .sugg-chk input{width:18px;height:18px;accent-color:var(--ui);cursor:pointer}
+  .sugg-chk b{color:var(--ui-dark)}
 
   #preview{display:none}
   .toolbar{position:sticky;top:0;z-index:50;background:#fff;border-bottom:2px solid var(--line);padding:12px 20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;box-shadow:0 2px 10px rgba(0,0,0,.05)}
   .toolbar .grow{flex:1}.toolbar .note{font-size:12.5px;color:var(--gray)}
   .sheet-wrap{padding:26px 12px 60px;display:flex;flex-direction:column;align-items:center;gap:26px;overflow-x:auto}
+  /* o hover dos botões de apoio também sai do vermelho — o vermelho FISK
+     fica só no hero e na marca. O verde do .btn-generate é padrão do Hub. */
+  .btn-ghost:hover{border-color:var(--ui);color:var(--ui-dark)}
+
   .sheet{background:#fff;width:794px;flex:none;padding:26px 28px;border-radius:4px;box-shadow:0 6px 26px rgba(0,0,0,.12);font-family:'Poppins',sans-serif;color:var(--text)}
   .rc-frame{border:2.5px solid var(--red);border-radius:22px;padding:14px 16px}
   .rc-outer{border:2.5px solid var(--red);border-radius:22px;padding:16px 16px 20px;margin-top:12px}
@@ -296,7 +305,7 @@
 
 /* indicador de carregamento (spinner → check) dos dropdowns "Conectar ao card" */
 .ind{display:inline-block;width:13px;height:13px;margin-left:.35rem;vertical-align:-2px}
-.ind.spin{border:2px solid #ececec;border-top-color:var(--red,#d81f26);border-radius:50%;
+.ind.spin{border:2px solid #ececec;border-top-color:var(--ui,#2b4d70);border-radius:50%;
           animation:giraInd .7s linear infinite}
 .ind.ok::after{content:'✓';color:#32a889;font-weight:900;font-size:.95rem}
 @keyframes giraInd{to{transform:rotate(360deg)}}

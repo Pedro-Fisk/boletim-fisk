@@ -40,8 +40,10 @@
 
 
   <header class="hero">
-    <a class="back-link" href="https://pedro-fisk.github.io/fisk-hub/boletins.html">&larr; Voltar aos boletins</a>
-    <a class="back-link" href="https://pedro-fisk.github.io/fisk-hub/" style="margin-left:14px">&larr; Voltar ao Hub</a>
+    <div class="back-link" style="display:flex;gap:14px;align-items:center">
+      <a href="https://pedro-fisk.github.io/fisk-hub/boletins.html" style="color:inherit;text-decoration:none">&larr; Voltar aos boletins</a>
+      <a href="https://pedro-fisk.github.io/fisk-hub/" style="color:inherit;text-decoration:none;opacity:.7">&larr; Voltar ao Hub</a>
+    </div>
     <button type="button" class="theme-toggle" id="themeToggle" aria-label="Alternar modo escuro" title="Alternar modo escuro">🌙</button>
     <img id="brandLogo" class="hero-logo" alt="FISK Taubaté · Caçapava">
     <h1>Gerador de Boletim</h1>
@@ -106,7 +108,7 @@
       </div>
     </div>
     <div id="cardAlunoWrap" hidden style="margin-top:12px">
-      <label class="fld">Aluno da turma <b id="cardTurmaNome" style="color:var(--red)"></b></label>
+      <label class="fld">Aluno da turma <b id="cardTurmaNome" style="color:var(--ui)"></b></label>
       <select id="selAluno"><option value="" disabled selected>Escolha o aluno…</option></select>
     </div>
     <div id="cardStatus" class="status" style="margin-top:12px"></div>
