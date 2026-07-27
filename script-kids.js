@@ -145,9 +145,7 @@ const EXTRA_PHRASES=[
   {key:'ling5', group:'Desenvolvimento linguístico', pt:'Canta e participa das músicas e rimas com entusiasmo.'},
   {key:'cog1', group:'Desenvolvimento cognitivo e socioemocional', pt:'Demonstra boa concentração durante as atividades propostas.'},
   {key:'cog2', group:'Desenvolvimento cognitivo e socioemocional', pt:'Desenvolve o raciocínio lógico nas atividades em sala.'},
-  {key:'cog3', group:'Desenvolvimento cognitivo e socioemocional', pt:'Reconhece cores, números e formas com facilidade.'},
   {key:'cog4', group:'Desenvolvimento cognitivo e socioemocional', pt:'Compartilha e interage bem com os colegas de turma.'},
-  {key:'cog5', group:'Desenvolvimento cognitivo e socioemocional', pt:'Demonstra autonomia crescente na realização das tarefas.'},
   {key:'cog6', group:'Desenvolvimento cognitivo e socioemocional', pt:'Lida bem com as regras e a rotina da sala de aula.'},
   {key:'cog7', group:'Desenvolvimento cognitivo e socioemocional', pt:'Expressa suas emoções de forma cada vez mais clara.'}
 ];
@@ -175,7 +173,10 @@ $('s_name').addEventListener('input',renderScale); // atualiza o nome nas frases
 (function(){
   let html='', lastGroup=null;
   EXTRA_PHRASES.forEach(p=>{
-    if(p.group!==lastGroup){ html+=`<div class="rgh" style="margin-top:10px">${p.group}</div>`; lastGroup=p.group; }
+    if(p.group!==lastGroup){
+      html+=`<div class="extra-grp${lastGroup?' is-seguinte':''}">${p.group}</div>`;
+      lastGroup=p.group;
+    }
     html+=`<label class="sugg-chk"><input type="checkbox" value="${p.key}"><span>${p.pt}</span></label>`;
   });
   $('extraBoxes').innerHTML=html;
@@ -313,9 +314,17 @@ $('generate').onclick=()=>{
     comment: buildObservations()
   };
   renderReport(data);
-  $('app').style.display='none';$('preview').style.display='block';window.scrollTo(0,0);
+  mostrarPreview();
 };
-$('backBtn').onclick=()=>{$('preview').style.display='none';$('app').style.display='block';};
+/* o boletim fica na página, abaixo do formulário; "voltar" só leva o
+   professor de volta ao topo para continuar editando */
+function mostrarPreview(){
+  const pv=$('preview');
+  pv.classList.add('is-inline'); pv.style.display='';
+  pv.scrollIntoView({behavior:'smooth', block:'start'});
+}
+function previewVisivel(){ return $('preview').classList.contains('is-inline'); }
+$('backBtn').onclick=()=>{ $('app').scrollIntoView({behavior:'smooth', block:'start'}); };
 
 /* ============ EXPORT ============ */
 function fileBase(){
@@ -370,6 +379,10 @@ async function generateEditablePDF(){
   const blob=new Blob([bytes],{type:'application/pdf'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fileBase()+'.pdf';a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  /* guarda os bytes para o "Salvar na pasta do aluno" — sem isso o botão do
+     Drive teria de gerar o PDF de novo */
+  window.ultimoPDF={ bytes:bytes, filename:a.download, aluno:($('s_name').value||'').trim() };
+  if(typeof window.onPDFGerado==='function') window.onPDFGerado();
   clearDraft();
 }
 
@@ -395,7 +408,7 @@ function collectPreviewDraft(){ return {stage:'preview', savedAt:Date.now(), sta
 
 function saveDraft(){
   try{
-    const isPreview=$('preview').style.display==='block';
+    const isPreview=previewVisivel();
     const draft=isPreview?collectPreviewDraft():collectFormDraft();
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
     draftDirty=false;
@@ -451,7 +464,7 @@ function tryRestoreDraft(){
   $('draftRestoreBtn').onclick=()=>{
     if(d.stage==='preview' && d.state){
       renderReport(d.state);
-      $('app').style.display='none'; $('preview').style.display='block';
+      mostrarPreview();
     }else{
       applyFormDraft(d);
     }
@@ -464,7 +477,7 @@ tryRestoreDraft();
 
 /* avisa antes de fechar/recarregar a aba se houver dados preenchidos, para evitar perda por clique acidental */
 function hasUnsavedWork(){
-  if($('preview').style.display==='block') return true;
+  if(previewVisivel()) return true;
   return medalsFilledCount()>0 || !!($('s_name').value||'').trim() || !!($('s_level').value||'').trim() || chosenScore!==null;
 }
 fiskInitBeforeUnloadGuard(hasUnsavedWork);

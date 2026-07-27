@@ -65,6 +65,37 @@
     <input type="text" id="s_teacher" placeholder="Seu nome">
   </div>
 
+  <div class="card" id="cardConnect">
+    <h2>🔗 Conectar ao card <span style="font-size:12px;color:var(--gray);font-weight:600">(opcional — traz o aluno da turma)</span></h2>
+    <p class="hint">Escolha a turma e o aluno: nome e estágio vêm preenchidos do card, sem digitação e sem erro de grafia.</p>
+    <div class="loadbox" id="cardCascade" hidden>
+      <div id="cardEuSou" hidden style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
+        <span style="font-weight:700;font-size:13px">👤 <span id="cardEuNome"></span></span>
+        <span style="font-size:11.5px;color:var(--gray);font-weight:600" id="cardEuEscola"></span>
+        <button type="button" class="btn btn-ghost btn-sm" id="btnTrocarProf">trocar professor(a)</button>
+      </div>
+      <div class="row-inline" style="gap:14px;flex-wrap:wrap;align-items:flex-start">
+        <span id="wrapEscola" style="flex:1 1 170px">
+          <label class="fld" style="margin-top:0">Escola<span id="indEscola" class="ind"></span></label>
+          <select id="selEscola" style="width:100%" disabled><option value="" disabled selected>Escola…</option></select>
+        </span>
+        <span id="wrapProf" style="flex:1 1 190px">
+          <label class="fld" style="margin-top:0">Professor(a)<span id="indProf" class="ind"></span></label>
+          <select id="selProf" style="width:100%" disabled><option value="" disabled selected>Professor(a)…</option></select>
+        </span>
+        <span style="flex:2 1 240px">
+          <label class="fld" style="margin-top:0">Turma<span id="indTurma" class="ind"></span></label>
+          <select id="selTurma" style="width:100%" disabled><option value="" disabled selected>Turma…</option></select>
+        </span>
+      </div>
+    </div>
+    <div id="cardAlunoWrap" hidden style="margin-top:12px">
+      <label class="fld">Aluno da turma <b id="cardTurmaNome" style="color:var(--ui)"></b></label>
+      <select id="selAluno"><option value="" disabled selected>Escolha o aluno…</option></select>
+    </div>
+    <div id="cardStatus" class="status" style="margin-top:12px"></div>
+  </div>
+
   <div class="card">
     <h2>👤 Dados do aluno</h2>
     <label class="fld">Nome completo do aluno <span class="req">*</span></label>
@@ -119,8 +150,10 @@
 
 <div id="preview">
   <div class="toolbar">
-    <button class="btn btn-ghost btn-sm" id="backBtn">← Voltar</button>
+    <button class="btn btn-ghost btn-sm" id="backBtn">↑ Voltar ao formulário</button>
     <span class="grow note">Clique nos ícones e no texto para ajustar. Baixe o PDF para salvar ou imprimir.</span>
+    <button class="btn btn-ghost btn-sm" id="btnDrive" hidden>📁 Salvar na pasta do aluno</button>
+    <a class="btn btn-ghost btn-sm" id="btnVerPasta" hidden target="_blank" rel="noopener">📂 Ver pasta</a>
     <button class="btn btn-generate btn-sm" id="pdfBtn">🖨️ Baixar PDF</button>
   </div>
   <div class="sheet-wrap" id="sheetWrap"></div>
@@ -134,5 +167,6 @@
 <script src="logo.js"></script>
 <script src="mic.js"></script>
 <script src="script-kids.js"></script>
+<script src="card-sync-kids.js"></script>
 </body>
 </html>

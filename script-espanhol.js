@@ -491,9 +491,17 @@ $('generate').onclick=()=>{
   base[pk].suggestionsOther=$('suggOther').value;
   const ds=getDateString(); if(ds) base[pk].date=ds;
   renderReport(base);
-  $('app').style.display='none';$('preview').style.display='block';window.scrollTo(0,0);
+  mostrarPreview();
 };
-$('backBtn').onclick=()=>{$('preview').style.display='none';$('app').style.display='block';};
+/* o boletim fica na página, abaixo do formulário; "voltar" só leva o
+   professor de volta ao topo para continuar editando */
+function mostrarPreview(){
+  const pv=$('preview');
+  pv.classList.add('is-inline'); pv.style.display='';
+  pv.scrollIntoView({behavior:'smooth', block:'start'});
+}
+function previewVisivel(){ return $('preview').classList.contains('is-inline'); }
+$('backBtn').onclick=()=>{ $('app').scrollIntoView({behavior:'smooth', block:'start'}); };
 
 /* ============ EXPORT ============ */
 function fileBase(){
@@ -602,7 +610,7 @@ function collectPreviewDraft(){ return {stage:'preview', savedAt:Date.now(), sta
 
 function saveDraft(){
   try{
-    const isPreview=$('preview').style.display==='block';
+    const isPreview=previewVisivel();
     const draft=isPreview?collectPreviewDraft():collectFormDraft();
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
     draftDirty=false;
@@ -667,7 +675,7 @@ function tryRestoreDraft(){
   $('draftRestoreBtn').onclick=()=>{
     if(d.stage==='preview' && d.state){
       renderReport(d.state);
-      $('app').style.display='none'; $('preview').style.display='block';
+      mostrarPreview();
     }else{
       applyFormDraft(d);
     }
@@ -680,7 +688,7 @@ tryRestoreDraft();
 
 /* avisa antes de fechar/recarregar a aba se houver dados preenchidos, para evitar perda por clique acidental */
 function hasUnsavedWork(){
-  if($('preview').style.display==='block') return true;
+  if(previewVisivel()) return true;
   return gradesFilledCount()>0 || !!($('s_name').value||'').trim() || !!($('s_level').value||'').trim() || !!($('notes').value||'').trim() || chosenScore!==null;
 }
 fiskInitBeforeUnloadGuard(hasUnsavedWork);
