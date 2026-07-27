@@ -81,11 +81,27 @@
     <h2>🔗 Conectar ao card <span style="font-size:12px;color:var(--gray);font-weight:600">(opcional — lança a nota direto na planilha)</span></h2>
     <p class="hint">Escolha o aluno pela turma do card: o nome e o estágio já vêm preenchidos e, ao final, a nota é lançada automaticamente na célula da planilha (média abaixo de 6 fica vermelha = gatilho da 2ª chance). Na 2ª avaliação, a 1ª é puxada do card — sem precisar subir o PDF.</p>
     <div class="loadbox" id="cardCascade" hidden>
-      <div class="row-inline" style="gap:10px;flex-wrap:wrap;align-items:center">
-        <span><select id="selEscola" style="max-width:190px" disabled><option value="" disabled selected>Escola…</option></select><span id="indEscola" class="ind"></span></span>
-        <span><select id="selProf" style="max-width:210px" disabled><option value="" disabled selected>Professor(a)…</option></select><span id="indProf" class="ind"></span></span>
-        <span><select id="selTurma" style="max-width:230px" disabled><option value="" disabled selected>Turma…</option></select><span id="indTurma" class="ind"></span></span>
-        <button type="button" class="btn btn-ghost btn-sm" id="btnCarregarTurma" hidden>Carregar turma</button>
+      <!-- logado pelo Fisk Hub: escola e professor(a) já vêm da sessão e só sobra a turma -->
+      <div id="cardEuSou" hidden style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
+        <span style="font-weight:700;font-size:13px">👤 <span id="cardEuNome"></span></span>
+        <span style="font-size:11.5px;color:var(--gray);font-weight:600" id="cardEuEscola"></span>
+        <button type="button" class="btn btn-ghost btn-sm" id="btnTrocarProf">trocar professor(a)</button>
+      </div>
+      <!-- padrão do Hub (termo-atraso): rótulo em cima e o indicador de
+           carregamento AO LADO DO RÓTULO, igual nos três campos -->
+      <div class="row-inline" style="gap:14px;flex-wrap:wrap;align-items:flex-start">
+        <span id="wrapEscola" style="flex:1 1 170px">
+          <label class="fld" style="margin-top:0">Escola<span id="indEscola" class="ind"></span></label>
+          <select id="selEscola" style="width:100%" disabled><option value="" disabled selected>Escola…</option></select>
+        </span>
+        <span id="wrapProf" style="flex:1 1 190px">
+          <label class="fld" style="margin-top:0">Professor(a)<span id="indProf" class="ind"></span></label>
+          <select id="selProf" style="width:100%" disabled><option value="" disabled selected>Professor(a)…</option></select>
+        </span>
+        <span style="flex:2 1 240px">
+          <label class="fld" style="margin-top:0">Turma<span id="indTurma" class="ind"></span></label>
+          <select id="selTurma" style="width:100%" disabled><option value="" disabled selected>Turma…</option></select>
+        </span>
       </div>
     </div>
     <div id="cardAlunoWrap" hidden style="margin-top:12px">
@@ -210,6 +226,7 @@
     <span id="cardPushStatus" style="font-weight:700;font-size:13px"></span>
     <button class="btn btn-ghost btn-sm" id="cardPushBtn" hidden>📤 Lançar no card</button>
     <button class="btn btn-ghost btn-sm" id="btnDrive" hidden>📁 Salvar na pasta do aluno</button>
+    <a class="btn btn-ghost btn-sm" id="btnVerPasta" hidden target="_blank" rel="noopener">📂 Ver pasta</a>
     <button class="btn btn-generate btn-sm" id="pdfBtn">🖨️ Baixar PDF</button>
   </div>
   <div class="sheet-wrap" id="sheetWrap"></div>

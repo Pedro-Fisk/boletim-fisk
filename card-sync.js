@@ -133,11 +133,89 @@
   /* indicador de carregamento do dropdown: '' | 'spin' | 'ok' */
   function ind(id, estado) { var e = el(id); if (e) e.className = 'ind' + (estado ? ' ' + estado : ''); }
 
-  /* ============ CASCATA STANDALONE (escola → prof → turma) ============ */
+  /* ============ SESSÃO DO PROFESSOR (SSO do Fisk Hub) ============
+     O boletim roda no MESMO origin do Hub (pedro-fisk.github.io), então a
+     sessão gravada no login do Hub vale aqui — dá para pular escola e
+     professor(a) e ir direto na turma. */
+  function sessao() { try { return JSON.parse(localStorage.getItem('fisk_prof') || 'null'); } catch (e) { return null; } }
+  function actingSaved() { try { return JSON.parse(localStorage.getItem('fisk_actas') || 'null'); } catch (e) { return null; } }
+  /* quem a ferramenta deve assumir: o professor logado ou, no acesso da
+     direção, aquele escolhido em "Ver como professor" no Hub. */
+  function profDaSessao() {
+    var s = sessao(); if (!s || !s.name) return null;
+    if (s.master) { var a = actingSaved(); return (a && a.name) ? { name: a.name, escolas: a.escolas || '' } : null; }
+    return { name: s.name, escolas: String(s.escolas || s.escola || '') };
+  }
+
+  /* a turma carrega sozinha ao ser escolhida — o valor do <option> carrega
+     junto a escola porque o professor pode dar aula nas duas unidades */
+  function carregarTurma(escola, prof, linha) {
+    ind('indTurma', 'spin'); setStatus('🔄 Lendo a turma ao vivo…');
+    return api({ fn: 'turma', escola: escola, prof: prof, linha: linha })
+      .then(function (d) { ind('indTurma', 'ok'); onTurmaLoaded(d); })
+      .catch(function (e) { ind('indTurma', ''); setStatus('⚠️ ' + e.message, 'err'); });
+  }
+
+  /* ============ MODO LOGADO: só a turma ============ */
+  function initSessao(p) {
+    var escolas = String(p.escolas || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+    if (!escolas.length) return initCascade();
+
+    el('cardCascade').hidden = false;
+    el('wrapEscola').hidden = true; el('wrapProf').hidden = true;
+    el('cardEuSou').hidden = false;
+    el('cardEuNome').textContent = p.name;
+    el('cardEuEscola').textContent = escolas.join(' + ');
+    setStatus('Escolha a turma — escola e professor(a) já vêm do seu login.');
+
+    var selTurma = el('selTurma');
+    resetSel(selTurma, 'Turma…'); ind('indTurma', 'spin');
+    Promise.all(escolas.map(function (esc) {
+      return api({ fn: 'turmas', escola: esc, prof: p.name })
+        .then(function (j) {
+          return (j.turmas || []).map(function (t) {
+            return { escola: esc, linha: t.linhaTitulo, titulo: t.titulo };
+          });
+        })
+        .catch(function () { return []; });   // escola sem aba desse professor não derruba a outra
+    })).then(function (listas) {
+      var todas = [].concat.apply([], listas);
+      if (!todas.length) {
+        /* nome da sessão sem aba correspondente no card (professor novo,
+           aba renomeada): cai na cascata em vez de deixar a tela travada */
+        ind('indTurma', '');
+        el('cardEuSou').hidden = true;
+        initCascade();
+        setStatus('Não achei turmas de "' + p.name + '" no card — escolha na mão.', 'err');
+        return;
+      }
+      fill(selTurma, 'Turma…', todas.map(function (t) {
+        return { v: t.escola + '|' + t.linha, t: (escolas.length > 1 ? t.escola + ' · ' : '') + t.titulo };
+      }));
+      ind('indTurma', 'ok');
+      selTurma.onchange = function () {
+        if (!selTurma.value) return;
+        var ref = selTurma.value.split('|');
+        carregarTurma(ref[0], p.name, ref[1]);
+      };
+    });
+
+    el('btnTrocarProf').onclick = function () {
+      el('cardEuSou').hidden = true;
+      initCascade();
+    };
+  }
+
+  /* ============ CASCATA COMPLETA (escola → prof → turma) ============
+     Usada sem sessão e no "trocar professor(a)" — substituições são
+     frequentes e todo professor precisa alcançar a turma de qualquer colega. */
   function initCascade() {
     el('cardCascade').hidden = false;
+    el('wrapEscola').hidden = false; el('wrapProf').hidden = false;
     setStatus('Escolha escola, professor(a) e turma — os dados vêm ao vivo do card.');
     var selEscola = el('selEscola'), selProf = el('selProf'), selTurma = el('selTurma');
+    resetSel(selProf, 'Professor(a)…'); resetSel(selTurma, 'Turma…');
+    ind('indProf', ''); ind('indTurma', '');
 
     ind('indEscola', 'spin');
     api({ fn: 'escolas' }).then(function (j) {
@@ -145,7 +223,7 @@
       ind('indEscola', 'ok');
     }).catch(function (e) { ind('indEscola', ''); setStatus('⚠️ ' + e.message, 'err'); });
 
-    selEscola.addEventListener('change', function () {
+    selEscola.onchange = function () {
       if (!selEscola.value) return;
       resetSel(selProf, 'Professor(a)…'); resetSel(selTurma, 'Turma…');
       ind('indProf', 'spin'); ind('indTurma', '');
@@ -153,8 +231,8 @@
         fill(selProf, 'Professor(a)…', (j.profs || []).map(function (p) { return { v: p, t: p }; }));
         ind('indProf', 'ok');
       }).catch(function (e) { ind('indProf', ''); setStatus('⚠️ ' + e.message, 'err'); });
-    });
-    selProf.addEventListener('change', function () {
+    };
+    selProf.onchange = function () {
       if (!selProf.value) return;
       resetSel(selTurma, 'Turma…'); ind('indTurma', 'spin');
       api({ fn: 'turmas', escola: selEscola.value, prof: selProf.value }).then(function (j) {
@@ -163,16 +241,12 @@
         }));
         ind('indTurma', 'ok');
       }).catch(function (e) { ind('indTurma', ''); setStatus('⚠️ ' + e.message, 'err'); });
-    });
-    /* ao escolher a turma (último dropdown), carrega a turma AUTOMATICAMENTE
-       — sem precisar do botão "Carregar turma" (que fica oculto). */
-    selTurma.addEventListener('change', function () {
+    };
+    /* ao escolher a turma (último dropdown) ela carrega AUTOMATICAMENTE */
+    selTurma.onchange = function () {
       if (!selTurma.value) return;
-      ind('indTurma', 'spin'); setStatus('🔄 Lendo a turma ao vivo…');
-      api({ fn: 'turma', escola: selEscola.value, prof: selProf.value, linha: selTurma.value })
-        .then(function (d) { ind('indTurma', 'ok'); onTurmaLoaded(d); })
-        .catch(function (e) { ind('indTurma', ''); setStatus('⚠️ ' + e.message, 'err'); });
-    });
+      carregarTurma(selEscola.value, selProf.value, selTurma.value);
+    };
   }
 
   /* ============ ABERTURA PELO CARD (#t=escola|prof|linha) ============ */
@@ -220,6 +294,7 @@
        no futuro, localizar os boletins do aluno no Drive sem mexer em permissões */
     window.RAF_DO_CARD = String(a.raf || '').trim();
     window.ultimoPDF = null;   // trocou de aluno: o PDF em memória é do anterior
+    esconderVerPasta();
     var hits = el('driveHits'); if (hits) { hits.hidden = true; hits.innerHTML = ''; }
     var level = (a.book || '').trim();
 
@@ -290,6 +365,18 @@
   }
   window.onPDFGerado = syncDriveBtn;   // script.js chama ao terminar de gerar
 
+  /* depois de salvar, o professor precisa CONFERIR onde caiu (a pasta é achada
+     por aproximação): o botão leva direto à pasta do aluno no Drive. */
+  function mostrarVerPasta(r) {
+    var b = el('btnVerPasta'); if (!b) return;
+    var url = (r && (r.pastaUrl || r.url)) || '';
+    if (!url) { b.hidden = true; return; }
+    b.href = url;
+    b.title = 'Abrir no Drive a pasta "' + ((r && r.pasta) || '') + '"';
+    b.hidden = false;
+  }
+  function esconderVerPasta() { var b = el('btnVerPasta'); if (b) b.hidden = true; }
+
   function salvarNaPasta() {
     var pdf = window.ultimoPDF;
     if (!pdf) { alert('Baixe o PDF primeiro — é ele que vai para a pasta.'); return; }
@@ -302,6 +389,7 @@
       filename: pdf.filename, bytes: pdf.bytes
     }).then(function (r) {
       setPush('✓ Boletim salvo na pasta "' + (r && r.pasta ? r.pasta : cardLink.nome) + '".', '#1e8f4e');
+      mostrarVerPasta(r);
     }).catch(function () { /* o helper já avisou o professor no alert */ });
   }
 
@@ -381,7 +469,10 @@
   function boot() {
     var standalone = (window.parent === window);
     if (location.hash.indexOf('#t=') === 0) initFromFragment();
-    else initCascade();
+    else {
+      var eu = profDaSessao();
+      if (eu) initSessao(eu); else initCascade();
+    }
 
     var pushBtn = el('cardPushBtn');
     if (pushBtn) pushBtn.onclick = function () { pushToCard(); };
@@ -397,6 +488,7 @@
     if (clearBtn) clearBtn.addEventListener('click', function () {
       /* zera também o PDF em memória: ele é de OUTRO aluno a partir daqui */
       cardLink = null; window.RAF_DO_CARD = ''; window.ultimoPDF = null;
+      esconderVerPasta();
       var h = el('driveHits'); if (h) { h.hidden = true; h.innerHTML = ''; }
       syncPushBtn(); setPush('');
       var sel = el('selAluno'); if (sel && sel.options.length) sel.selectedIndex = 0;
