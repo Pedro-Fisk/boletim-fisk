@@ -35,7 +35,7 @@ async function fiskSalvarNoDrive(opts) {
   var endpoint = opts.endpoint || FISK_SAVE_URL;
   if (!endpoint) { var ec = new Error('URL de salvamento não configurada'); ec.code = 'sem_endpoint'; throw ec; }
   var payload = {
-    fn: 'salvarPdf', key: opts.key, tipo: opts.tipo,
+    fn: 'salvarPdf', key: opts.key, token: opts.token || '', tipo: opts.tipo,
     escola: opts.escola || '', professor: opts.professor || '',
     turma: opts.turma || '', aluno: opts.aluno || '',
     filename: opts.filename || 'documento.pdf', mime: 'application/pdf',
@@ -73,7 +73,7 @@ async function fiskBuscarNoDrive(opts) {
   var endpoint = opts.endpoint || FISK_SAVE_URL;
   if (!endpoint) { var ec = new Error('URL de busca não configurada'); ec.code = 'sem_endpoint'; throw ec; }
   var payload = {
-    fn: 'buscarPdf', key: opts.key,
+    fn: 'buscarPdf', key: opts.key, token: opts.token || '',
     escola: opts.escola || '', professor: opts.professor || '',
     turma: opts.turma || '', aluno: opts.aluno || '',
     filename: opts.filename || '', padrao: opts.padrao || ''

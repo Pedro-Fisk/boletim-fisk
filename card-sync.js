@@ -16,8 +16,7 @@
    ============================================================ */
 (function () {
   /* mesma implantação e chave do termo-atraso (App da Web do card) */
-  var API_URL = 'https://script.google.com/macros/s/AKfycbxb3s3zSUoaFO9ytEQ4W6r-5xJ3hiA9fbFhugnbd9gyX-m3KGNNM8DeyGgNWPReYEwU/exec';
-  var API_KEY = 'fisk-cards-2026-vX7q3nT';
+  var API_URL = 'https://script.google.com/macros/s/AKfycbw13tpIVD3Ji9XhWW1VwDSw8qAZOmtMGPV0FI1rlHpEQ7HABumVpi_aMWQXfo7dwkd1/exec';
 
   /* vínculo atual com um aluno do card. null = boletim sem vínculo (modo antigo). */
   var cardLink = null;   // { escola, prof, linhaCard, book, nome }
@@ -40,11 +39,26 @@
   }
 
   /* ---- helper de API (mesmo esquema do termo) ---- */
+  /* A CHAVE DO CARD NÃO VIVE MAIS AQUI. Este repositório é público: enquanto
+     ela estava neste arquivo, qualquer pessoa na internet lia nome, notas e
+     faltas de todas as turmas — e escrevia nota. Quem fala com o card agora é
+     o backend (action=card), que valida a sessão e só então carimba a chave.
+     Ver cardProxy_ no fisk-hub-backend. NUNCA reintroduzir a chave aqui. */
+  function tokenSessao() {
+    try { var s = JSON.parse(localStorage.getItem('fisk_prof') || 'null'); return (s && s.token) || ''; }
+    catch (e) { return ''; }
+  }
+  function comSessao(p) {
+    var o = { action: 'card', token: tokenSessao() };
+    Object.keys(p).forEach(function (k) { o[k] = p[k]; });
+    return o;
+  }
   function api(params) {
-    var qs = Object.keys(params).map(function (k) {
-      return k + '=' + encodeURIComponent(params[k]);
+    var P = comSessao(params);
+    var qs = Object.keys(P).map(function (k) {
+      return k + '=' + encodeURIComponent(P[k]);
     }).join('&');
-    return fetch(API_URL + '?key=' + encodeURIComponent(API_KEY) + '&' + qs)
+    return fetch(API_URL + '?' + qs)
       .then(function (r) { return r.json(); })
       .then(function (j) { if (j && j.erro) throw new Error(j.erro); return j; });
   }
@@ -399,7 +413,7 @@
       plannerMsg('Planner não atualizado (biblioteca de PDF não carregou).', '#c0392b');
       return;
     }
-    var base = { key: API_KEY, escola: cardLink.escola, professor: cardLink.prof,
+    var base = { token: tokenSessao(), escola: cardLink.escola, professor: cardLink.prof,
                  turma: cardLink.turma, aluno: cardLink.nome };
     var lista = {}; for (var k in base) lista[k] = base[k];
     lista.padrao = 'planner';
@@ -489,7 +503,7 @@
     if (!cardLink) { alert('Sem vínculo com o card: escolha escola, professor(a), turma e aluno para eu saber em que pasta salvar.'); return; }
     if (typeof fiskEnviarParaPasta !== 'function') { alert('Helper de Drive não carregou (fisk-drive.js).'); return; }
     fiskEnviarParaPasta(el('btnDrive'), {
-      key: API_KEY, tipo: 'aluno',
+      token: tokenSessao(), tipo: 'aluno',
       escola: cardLink.escola, professor: cardLink.prof, turma: cardLink.turma,
       aluno: cardLink.nome || pdf.aluno,
       filename: pdf.filename, bytes: pdf.bytes
@@ -517,7 +531,7 @@
     if (typeof fiskBuscarNoDrive !== 'function') { driveMsg('Helper de Drive não carregou (fisk-drive.js).', '#c0392b'); return; }
     var btn = el('btnBuscarDrive'), old = btn ? btn.textContent : '';
     if (btn) { btn.disabled = true; btn.textContent = '⏳ Procurando no Drive…'; }
-    var base = { key: API_KEY, escola: cardLink.escola, professor: cardLink.prof,
+    var base = { token: tokenSessao(), escola: cardLink.escola, professor: cardLink.prof,
                  turma: cardLink.turma, aluno: cardLink.nome };
     driveMsg('🔄 Procurando o boletim de ' + cardLink.nome + ' na pasta do aluno…', '#0e7fb5');
     fiskBuscarNoDrive(base).then(function (r) {
