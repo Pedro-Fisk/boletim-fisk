@@ -205,7 +205,7 @@ function suggList(p){
   const sel=(p.suggestions||[]);
   let items=sel.map(k=>{const s=SUGGESTIONS.find(x=>x.key===k);return s?`<div class="sugg-item">✓ ${esc(s.pt)}</div>`:'';}).join('');
   if(p.suggestionsOther && p.suggestionsOther.trim()) items+=`<div class="sugg-item">✓ ${esc(p.suggestionsOther.trim())}</div>`;
-  return items || '<div class="sugg-empty">—</div>';
+  return items || '<div class="sugg-empty"></div>';
 }
 function gradeCell(pk,f,l,v){return `<div class="gradecell"><div class="lab">${l} (0-10)</div><div class="gval" contenteditable="true" data-pkey="${pk}" data-field="${f}" data-kind="grade">${v===null||v===undefined?'':fmt(v)}</div></div>`;}
 function testCell(pk,f,v){return `<div class="testbox"><div class="tval" contenteditable="true" data-pkey="${pk}" data-field="${f}" data-kind="grade">${v===null||v===undefined?'':fmt(v)}</div></div>`;}

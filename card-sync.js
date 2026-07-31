@@ -180,7 +180,7 @@
     el('cardEuSou').hidden = false;
     el('cardEuNome').textContent = p.name;
     el('cardEuEscola').textContent = escolas.join(' + ');
-    setStatus('Escolha a turma — escola e professor(a) já vêm do seu login.');
+    setStatus('Escolha a turma, escola e professor(a) já vêm do seu login.');
 
     var selTurma = el('selTurma');
     resetSel(selTurma, 'Turma…'); ind('indTurma', 'spin');
@@ -200,7 +200,7 @@
         ind('indTurma', '');
         el('cardEuSou').hidden = true;
         initCascade();
-        setStatus('Não achei turmas de "' + p.name + '" no card — escolha na mão.', 'err');
+        setStatus('Não achei turmas de "' + p.name + '" no card, escolha na mão.', 'err');
         return;
       }
       fill(selTurma, 'Turma…', todas.map(function (t) {
@@ -226,7 +226,7 @@
   function initCascade() {
     el('cardCascade').hidden = false;
     el('wrapEscola').hidden = false; el('wrapProf').hidden = false;
-    setStatus('Escolha escola, professor(a) e turma — os dados vêm ao vivo do card.');
+    setStatus('Escolha escola, professor(a) e turma, os dados vêm ao vivo do card.');
     var selEscola = el('selEscola'), selProf = el('selProf'), selTurma = el('selTurma');
     resetSel(selProf, 'Professor(a)…'); resetSel(selTurma, 'Turma…');
     ind('indProf', ''); ind('indTurma', '');
@@ -269,28 +269,28 @@
     setStatus('🔄 Lendo a turma do card…');
     api({ fn: 'turma', escola: ref[0], prof: ref[1], linha: ref[2] })
       .then(onTurmaLoaded)
-      .catch(function (e) { setStatus('⚠️ ' + e.message + ' — use a cascata abaixo.', 'err'); initCascade(); });
+      .catch(function (e) { setStatus('⚠️ ' + e.message + ', use a cascata abaixo.', 'err'); initCascade(); });
   }
 
   /* ============ TURMA CARREGADA → picker de alunos ============ */
   function onTurmaLoaded(dados) {
     var alunos = (dados.alunos || []).filter(function (a) { return a && a.nome; });
-    el('cardTurmaNome').textContent = dados.turma ? '— ' + dados.turma : '';
+    el('cardTurmaNome').textContent = dados.turma ? '- ' + dados.turma : '';
     var sel = el('selAluno');
     sel.innerHTML = '<option value="" disabled selected>Escolha o aluno…</option>' +
       alunos.map(function (a, i) {
         var tag = (a.notasAv1 && String(a.notasAv1).trim()) ? ' • já tem 1ª nota' : '';
         return '<option value="' + i + '">' + String(a.nome).replace(/</g, '&lt;') + tag + '</option>';
       }).join('') +
-      '<option value="__none__">— sem vínculo (digitar à mão) —</option>';
+      '<option value="__none__">sem vínculo (digitar à mão), </option>';
     el('cardAlunoWrap').hidden = false;
     el('cardCascade').hidden = false; // mantém visível para trocar de turma
-    setStatus('Turma "' + (dados.turma || '') + '" carregada — escolha o aluno.', 'ok');
+    setStatus('Turma "' + (dados.turma || '') + '" carregada, escolha o aluno.', 'ok');
 
     sel.onchange = function () {
       if (sel.value === '__none__') {
         cardLink = null; window.RAF_DO_CARD = ''; syncPushBtn();
-        setStatus('Sem vínculo com o card — o boletim NÃO será lançado na planilha.');
+        setStatus('Sem vínculo com o card, o boletim NÃO será lançado na planilha.');
         return;
       }
       var a = alunos[+sel.value]; if (!a) return;
@@ -320,17 +320,17 @@
         p1: parseCardNotes(a.notasAv1), p2: {}
       };
       applyLoaded('1ª avaliação de ' + a.nome + ' puxada do card. Preencha a 2ª.');
-      setStatus('✓ ' + a.nome + ' — 1ª avaliação carregada do card. Preencha a 2ª avaliação.', 'ok');
+      setStatus('✓ ' + a.nome + ', 1ª avaliação carregada do card. Preencha a 2ª avaliação.', 'ok');
     } else {
       el('s_name').value = a.nome;
       el('s_level').value = level;
       if (typeof renderScale === 'function') renderScale();
       if (typeof updateProgress === 'function') updateProgress();
-      setStatus('✓ ' + a.nome + ' selecionado(a) · estágio ' + (level || '—') +
+      setStatus('✓ ' + a.nome + ' selecionado(a) · estágio ' + (level || '-') +
                 '. A nota será lançada no card ao final.', 'ok');
     }
     if (/focus/i.test(level)) {
-      setStatus('⚠️ ' + a.nome + ' é do Focus — o curso usa simulados MET, não boletim formal. ' +
+      setStatus('⚠️ ' + a.nome + 'é do Focus. O curso usa simulados MET, não boletim formal.' +
                 'Você ainda pode lançar, mas confirme com a coordenação.', 'err');
     }
     syncPushBtn();
@@ -345,7 +345,7 @@
     var p = STATE[pk] || {};
     var faltando = FIELDS.filter(function (f) { return p[f] == null || p[f] === ''; });
     if (faltando.length) {
-      setPush('⚠️ Notas incompletas — não lancei no card.', '#c0392b');
+      setPush('⚠️ Notas incompletas, não lancei no card.', '#c0392b');
       return Promise.resolve();
     }
     var level = (STATE.student && STATE.student.level) || cardLink.book || '';
@@ -359,7 +359,7 @@
       linhaCard: cardLink.linhaCard, av: av, texto: texto, mediaBaixa: media < 6 ? '1' : '0'
     }).then(function () {
       setPush('✓ ' + av + 'ª avaliação lançada no card' +
-              (media < 6 ? ' (média baixa — célula vermelha)' : '') + '.', '#1e8f4e');
+              (media < 6 ? '(média baixa, célula vermelha)' : '') + '.', '#1e8f4e');
       // o card é o registro oficial; o planner é um extra que nunca pode
       // derrubar o lançamento — por isso vem depois e engole os próprios erros
       return atualizarPlannerNoDrive(p, av);
@@ -422,7 +422,7 @@
       var arqs = r.arquivos || [];
       if (!arqs.length) {
         plannerMsg('Nenhum planner na pasta de ' + esc(cardLink.nome) +
-                   ' — a nota foi para o card, mas não para o planner.', '#b8860b');
+                   '. A nota foi para o card, mas não para o planner.', '#b8860b');
         return;
       }
       // vem ordenado do mais recente; se houver mais de um, o atual é o certo
@@ -452,7 +452,7 @@
           }
         });
         if (!escritos.length) {
-          plannerMsg('O planner “' + esc(nome) + '” não tem tabela de notas — ' +
+          plannerMsg('O planner “' + esc(nome) + '” não tem tabela de notas,' +
                      'estágios sem avaliação formal não recebem nota.', '#b8860b');
           return;
         }
@@ -499,7 +499,7 @@
 
   function salvarNaPasta() {
     var pdf = window.ultimoPDF;
-    if (!pdf) { alert('Baixe o PDF primeiro — é ele que vai para a pasta.'); return; }
+    if (!pdf) { alert('Baixe o PDF primeiro. É ele que vai para a pasta.'); return; }
     if (!cardLink) { alert('Sem vínculo com o card: escolha escola, professor(a), turma e aluno para eu saber em que pasta salvar.'); return; }
     if (typeof fiskEnviarParaPasta !== 'function') { alert('Helper de Drive não carregou (fisk-drive.js).'); return; }
     fiskEnviarParaPasta(el('btnDrive'), {
@@ -525,7 +525,7 @@
 
   function buscarNoDrive() {
     if (!cardLink) {
-      driveMsg('Escolha escola, professor(a), turma e aluno em “Conectar ao card” — é de lá que eu sei em que pasta procurar.', '#c0392b');
+      driveMsg('Escolha escola, professor(a), turma e aluno em “Conectar ao card”. É de lá que eu sei em que pasta procurar.', '#c0392b');
       return;
     }
     if (typeof fiskBuscarNoDrive !== 'function') { driveMsg('Helper de Drive não carregou (fisk-drive.js).', '#c0392b'); return; }
@@ -540,7 +540,7 @@
         /* a busca só lista os boletins gerados aqui; outros PDFs da pasta são
            contados para o professor entender por que não apareceram */
         driveMsg('Nenhum boletim desta ferramenta na pasta “' + esc(r.pasta || cardLink.nome) + '”' +
-                 (r.outros ? ' (há ' + r.outros + ' outro(s) PDF lá, de outras origens — esses precisam ser subidos à mão)' : '') +
+                 (r.outros ? ' (há ' + r.outros + 'outro(s) PDF lá, de outras origens. Esses precisam ser subidos à mão)' : '') +
                  '. Suba o arquivo abaixo.', '#c0392b');
         return;
       }
@@ -550,7 +550,7 @@
       var box = el('driveHits');
       box.hidden = false;
       box.innerHTML = '<div style="font-weight:700;font-size:12.5px;margin-bottom:6px">Achei na pasta “' +
-        esc(r.pasta || cardLink.nome) + '” — qual é o boletim da 1ª avaliação?</div>';
+        esc(r.pasta || cardLink.nome) + '”. Qual é o boletim da 1ª avaliação?</div>';
       arqs.forEach(function (a) {
         var b = document.createElement('button');
         b.type = 'button'; b.className = 'btn btn-ghost btn-sm';

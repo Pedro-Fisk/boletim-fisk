@@ -128,13 +128,13 @@ async function fiskEnviarParaPasta(buttonEl, getOpts) {
          na pasta do professor(a) antigo, e a busca só olha a do card. */
       alert('⚠️ O documento NÃO foi salvo no Drive.\n\n' +
             'Não existe pasta ' + ondeAlvo + ' dentro da pasta do professor(a) que está ' +
-            'selecionado em "Conectar ao card" — é só ali que eu procuro.\n\n' +
+            'selecionado em "Conectar ao card". É só ali que eu procuro.\n\n' +
             'O que costuma resolver:\n' +
             '• se o aluno trocou de professor(a) ou turma, veja se o card está com o ' +
             'professor(a) certo e tente de novo;\n' +
             '• se a turma é nova, crie a pasta ' + ondeAlvo + ' dentro da pasta da turma ' +
             'no drive compartilhado, com o nome completo dele, e clique de novo.\n\n' +
-            'O PDF que você baixou está no seu computador — nada foi perdido.' +
+            'O PDF que você baixou está no seu computador. Nada foi perdido.' +
             (e.message ? '\n\n(detalhe do servidor: ' + e.message + ')' : ''));
     } else {
       alert('Não deu para salvar no Drive: ' + (e.message || e));

@@ -80,7 +80,7 @@
     el('cardEuSou').hidden = false;
     el('cardEuNome').textContent = p.name;
     el('cardEuEscola').textContent = escolas.join(' + ');
-    setStatus('Escolha a turma — escola e professor(a) já vêm do seu login.');
+    setStatus('Escolha a turma, escola e professor(a) já vêm do seu login.');
 
     var selTurma = el('selTurma');
     resetSel(selTurma, 'Turma…'); ind('indTurma', 'spin');
@@ -95,7 +95,7 @@
       var todas = [].concat.apply([], listas);
       if (!todas.length) {
         ind('indTurma', ''); el('cardEuSou').hidden = true; initCascade();
-        setStatus('Não achei turmas de "' + p.name + '" no card — escolha na mão.', 'err');
+        setStatus('Não achei turmas de "' + p.name + '" no card, escolha na mão.', 'err');
         return;
       }
       fill(selTurma, 'Turma…', todas.map(function (t) {
@@ -116,7 +116,7 @@
   function initCascade() {
     el('cardCascade').hidden = false;
     el('wrapEscola').hidden = false; el('wrapProf').hidden = false;
-    setStatus('Escolha escola, professor(a) e turma — os dados vêm ao vivo do card.');
+    setStatus('Escolha escola, professor(a) e turma, os dados vêm ao vivo do card.');
     var selEscola = el('selEscola'), selProf = el('selProf'), selTurma = el('selTurma');
     resetSel(selProf, 'Professor(a)…'); resetSel(selTurma, 'Turma…');
     ind('indProf', ''); ind('indTurma', '');
@@ -155,20 +155,20 @@
   /* ---- turma carregada → escolher o aluno ---- */
   function onTurmaLoaded(dados) {
     var alunos = (dados.alunos || []).filter(function (a) { return a && a.nome; });
-    el('cardTurmaNome').textContent = dados.turma ? '— ' + String(dados.turma).split('\n')[0] : '';
+    el('cardTurmaNome').textContent = dados.turma ? '- ' + String(dados.turma).split('\n')[0] : '';
     var sel = el('selAluno');
     sel.innerHTML = '<option value="" disabled selected>Escolha o aluno…</option>' +
       alunos.map(function (a, i) {
         return '<option value="' + i + '">' + String(a.nome).replace(/</g, '&lt;') + '</option>';
       }).join('') +
-      '<option value="__none__">— sem vínculo (digitar à mão) —</option>';
+      '<option value="__none__">sem vínculo (digitar à mão), </option>';
     el('cardAlunoWrap').hidden = false;
-    setStatus('Turma carregada — escolha o aluno.', 'ok');
+    setStatus('Turma carregada, escolha o aluno.', 'ok');
 
     sel.onchange = function () {
       if (sel.value === '__none__') {
         cardLink = null; window.RAF_DO_CARD = ''; syncDriveBtn();
-        setStatus('Sem vínculo com o card — preencha o nome e o estágio à mão.');
+        setStatus('Sem vínculo com o card, preencha o nome e o estágio à mão.');
         return;
       }
       var a = alunos[+sel.value]; if (!a) return;
@@ -180,7 +180,7 @@
       if (a.book) el('s_level').value = a.book;
       if (typeof renderScale === 'function') renderScale();
       if (typeof updateProgress === 'function') updateProgress();
-      setStatus('✓ ' + a.nome + (a.book ? ' · ' + a.book : '') + ' — dados preenchidos.', 'ok');
+      setStatus('✓ ' + a.nome + (a.book ? ' · ' + a.book : '') + ', dados preenchidos.', 'ok');
     };
   }
 
@@ -201,7 +201,7 @@
 
   function salvarNaPasta() {
     var pdf = window.ultimoPDF;
-    if (!pdf) { alert('Baixe o PDF primeiro — é ele que vai para a pasta.'); return; }
+    if (!pdf) { alert('Baixe o PDF primeiro. É ele que vai para a pasta.'); return; }
     if (!cardLink) { alert('Sem vínculo com o card: escolha a turma e o aluno para eu saber em que pasta salvar.'); return; }
     if (typeof fiskEnviarParaPasta !== 'function') { alert('Helper de Drive não carregou (fisk-drive.js).'); return; }
     fiskEnviarParaPasta(el('btnDrive'), {
