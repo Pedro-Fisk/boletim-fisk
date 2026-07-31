@@ -63,9 +63,11 @@ function fiskBase64ToBytes(b64) {
 
 /**
  * Contraparte de leitura: acha os PDFs na pasta do aluno.
- * opts: { endpoint, key, escola, professor, turma, aluno, filename? }
+ * opts: { endpoint, key, escola, professor, turma, aluno, filename?, padrao? }
  * Sem `filename` resolve { arquivos:[{nome,url,atualizado}], pasta }.
  * Com `filename` resolve { nome, bytes(Uint8Array) }.
+ * `padrao:'planner'` lista os planners em vez dos boletins (o boletim usa isso
+ * para achar o planner do aluno e escrever a nota no cabeçalho).
  */
 async function fiskBuscarNoDrive(opts) {
   var endpoint = opts.endpoint || FISK_SAVE_URL;
@@ -74,7 +76,7 @@ async function fiskBuscarNoDrive(opts) {
     fn: 'buscarPdf', key: opts.key,
     escola: opts.escola || '', professor: opts.professor || '',
     turma: opts.turma || '', aluno: opts.aluno || '',
-    filename: opts.filename || ''
+    filename: opts.filename || '', padrao: opts.padrao || ''
   };
   var resp = await fetch(endpoint, { method: 'POST', body: JSON.stringify(payload) });
   var j;

@@ -346,9 +346,115 @@
     }).then(function () {
       setPush('✓ ' + av + 'ª avaliação lançada no card' +
               (media < 6 ? ' (média baixa — célula vermelha)' : '') + '.', '#1e8f4e');
+      // o card é o registro oficial; o planner é um extra que nunca pode
+      // derrubar o lançamento — por isso vem depois e engole os próprios erros
+      return atualizarPlannerNoDrive(p, av);
     }).catch(function (e) {
       setPush('⚠️ Não consegui lançar: ' + e.message, '#c0392b');
     }).finally(function () { if (btn) btn.disabled = false; });
+  }
+
+  /* ============ A MESMA NOTA NO PLANNER DO ALUNO ============
+     Depois de lançar no card, a nota vai para a tabela do cabeçalho do planner
+     que já está salvo na pasta do aluno no Drive: baixa o PDF, preenche os
+     campos do formulário e regrava por cima (o backend substitui arquivo de
+     mesmo nome).
+
+     ⚠️ ARMADILHA DOS NOMES DOS CAMPOS. Os nomes internos do formulário NÃO
+     batem com os rótulos impressos — estão deslocados uma linha. O campo
+     chamado "…TESTWRITING" fica na linha do LISTENING, o "…TESTLISTENING" na
+     do ORAL, e assim por diante; a linha de cima (WRITING) é um widget do
+     campo AVERAGE. Conferido em 30/07/2026 cruzando as coordenadas dos
+     widgets com o texto da página do PDF. O mapa abaixo é POR POSIÇÃO —
+     nunca "corrigir" isto para os nomes baterem, senão a nota de escrita sai
+     impressa na linha de listening do planner do aluno.
+
+     COLUNAS: cada TEST tem 3 sub-colunas. A nota vai na PRIMEIRA de cada
+     bloco — sufixo vazio na 1ª avaliação, "_4" na 2ª. */
+  var PLANNER_LINHAS = [
+    { rotulo: 'WRITING',       campo: '1st TEST 2nd TESTAVERAGE.1',     valor: function (p) { return num(p.writtenTest); } },
+    { rotulo: 'LISTENING',     campo: '1st TEST 2nd TESTWRITING',       valor: function (p) { return num(p.listeningTest); } },
+    { rotulo: 'ORAL',          campo: '1st TEST 2nd TESTLISTENING',     valor: function (p) { return avg([p.fluency, p.pronunciation]); } },
+    { rotulo: 'PARTICIPATION', campo: '1st TEST 2nd TESTORAL',          valor: function (p) { return num(p.participation); } },
+    { rotulo: 'CYBER',         campo: '1st TEST 2nd TESTPARTICIPATION', valor: function (p) { return num(p.dedication); } },
+    { rotulo: 'AVERAGE',       campo: '1st TEST 2nd TESTAVERAGE.0',     valor: function (p) { return finalGrade(p); } }
+  ];
+
+  /* 1ª avaliação = 1ª coluna do bloco "1st TEST" (nome base).
+     2ª avaliação = 1ª coluna do bloco "2nd TEST" (sufixo _4, antes do .0/.1). */
+  function campoDaAvaliacao(campo, av) {
+    if (Number(av) !== 2) return campo;
+    var m = campo.match(/^(.+?)(\.\d+)$/);
+    return m ? m[1] + '_4' + m[2] : campo + '_4';
+  }
+
+  function plannerMsg(html, color) {
+    var box = el('cardPushStatus'); if (!box) return;
+    box.innerHTML += '<br><span style="font-size:12px;color:' + (color || '#5a6b74') + '">' + html + '</span>';
+  }
+
+  function atualizarPlannerNoDrive(p, av) {
+    if (!cardLink) return;
+    if (typeof PDFLib === 'undefined' || typeof fiskBuscarNoDrive !== 'function') {
+      plannerMsg('Planner não atualizado (biblioteca de PDF não carregou).', '#c0392b');
+      return;
+    }
+    var base = { key: API_KEY, escola: cardLink.escola, professor: cardLink.prof,
+                 turma: cardLink.turma, aluno: cardLink.nome };
+    var lista = {}; for (var k in base) lista[k] = base[k];
+    lista.padrao = 'planner';
+    plannerMsg('🔄 Procurando o planner de ' + esc(cardLink.nome) + ' no Drive…', '#0e7fb5');
+    return fiskBuscarNoDrive(lista).then(function (r) {
+      var arqs = r.arquivos || [];
+      if (!arqs.length) {
+        plannerMsg('Nenhum planner na pasta de ' + esc(cardLink.nome) +
+                   ' — a nota foi para o card, mas não para o planner.', '#b8860b');
+        return;
+      }
+      // vem ordenado do mais recente; se houver mais de um, o atual é o certo
+      return preencherPlanner(base, arqs[0].nome, p, av);
+    }).catch(function (e) {
+      plannerMsg('Não deu para atualizar o planner: ' + esc(e.message || String(e)), '#c0392b');
+    });
+  }
+
+  function preencherPlanner(base, nome, p, av) {
+    var opts = {}; for (var k in base) opts[k] = base[k];
+    opts.filename = nome;
+    return fiskBuscarNoDrive(opts).then(function (f) {
+      return PDFLib.PDFDocument.load(f.bytes).then(function (pdf) {
+        var form = pdf.getForm();
+        var escritos = [], faltando = [];
+        PLANNER_LINHAS.forEach(function (linha) {
+          var v = linha.valor(p);
+          if (v === null || v === undefined || v === '') return;
+          var alvo = campoDaAvaliacao(linha.campo, av);
+          try {
+            form.getTextField(alvo).setText(fmt(v));
+            escritos.push(linha.rotulo);
+          } catch (err) {
+            // modelo sem tabela de notas (New Focus, Pathways, In Focus Review)
+            faltando.push(linha.rotulo);
+          }
+        });
+        if (!escritos.length) {
+          plannerMsg('O planner “' + esc(nome) + '” não tem tabela de notas — ' +
+                     'estágios sem avaliação formal não recebem nota.', '#b8860b');
+          return;
+        }
+        return pdf.embedFont(PDFLib.StandardFonts.Helvetica).then(function (font) {
+          form.updateFieldAppearances(font);
+          return pdf.save();
+        }).then(function (bytes) {
+          var envio = {}; for (var k2 in base) envio[k2] = base[k2];
+          envio.tipo = 'aluno'; envio.filename = nome; envio.bytes = bytes;
+          return fiskSalvarNoDrive(envio).then(function () {
+            plannerMsg('✓ Planner “' + esc(nome) + '” atualizado com a ' + av +
+                       'ª avaliação (' + escritos.join(', ') + ').', '#1e8f4e');
+          });
+        });
+      });
+    });
   }
 
   function syncPushBtn() {
