@@ -41,6 +41,12 @@ async function fiskSalvarNoDrive(opts) {
     filename: opts.filename || 'documento.pdf', mime: 'application/pdf',
     dados: fiskBytesToBase64(opts.bytes)
   };
+  /* Substituição por PADRÃO: usada quando o arquivo pode existir na pasta com
+     um nome diferente do atual (o planner mudou de "Planner_Nome" para
+     "Planner - Nome"). Sem isto o servidor só troca arquivo de nome idêntico
+     e os dois ficariam lado a lado. Mesma assinatura do fisk-shared.js. */
+  if (opts.substituiPrefixo) payload.substituiPrefixo = opts.substituiPrefixo;
+  if (opts.substituiSufixo) payload.substituiSufixo = opts.substituiSufixo;
   // corpo como string simples (text/plain) evita preflight CORS no Apps Script
   var resp = await fetch(endpoint, { method: 'POST', body: JSON.stringify(payload) });
   var j;
