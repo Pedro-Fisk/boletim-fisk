@@ -168,9 +168,11 @@
     sel.onchange = function () {
       if (sel.value === '__none__') {
         cardLink = null; window.RAF_DO_CARD = ''; syncDriveBtn();
-        setStatus('Sem vínculo com o card, preencha o nome e o estágio à mão.');
+        ONDE_ESTAVA = { escola: dados.escola, prof: dados.aba, turma: String(dados.turma || '').split('\n')[0] };
+        setStatus('⚠️ Aluno fora do card: a secretaria será avisada para arrumar o cadastro. Preencha o nome e o estágio à mão.', 'err');
         return;
       }
+      ONDE_ESTAVA = null;
       var a = alunos[+sel.value]; if (!a) return;
       cardLink = { escola: dados.escola, prof: dados.aba, turma: String(dados.turma || '').split('\n')[0],
                    nome: a.nome, book: a.book, raf: a.raf || '' };
@@ -184,11 +186,39 @@
     };
   }
 
+  /* ---- aluno fora do card: aviso automático para a secretaria ----
+     A saída à mão CONTINUA existindo: cadastro atrasado (matrícula ou
+     transferência que a secretaria ainda não concluiu) não pode travar o
+     professor. Mas a secretaria precisa saber, então a ferramenta avisa
+     sozinha quando o PDF sai sem vínculo. Dedup é no servidor, por
+     escola+turma+aluno. Ver fisk-fora-do-card.js. */
+  var ONDE_ESTAVA = null;      // escola/prof/turma de onde o professor estava
+  var JA_AVISOU = '';          // não repete o aviso do mesmo nome na mesma sessão
+
+  function avisarForaDoCard(documento) {
+    var nome = (el('s_name') && el('s_name').value || '').trim();
+    if (!nome || cardLink) return;
+    if (JA_AVISOU === nome.toLowerCase()) return;
+    JA_AVISOU = nome.toLowerCase();
+    var onde = ONDE_ESTAVA || {};
+    if (typeof window.fiskAvisarForaDoCard !== 'function') return;
+    window.fiskAvisarForaDoCard({ documento: documento, aluno: nome,
+      escola: onde.escola, professor: onde.prof, turma: onde.turma })
+      .then(function (r) {
+        if (r.avisado) setStatus('⚠️ Aluno fora do card: a secretaria foi avisada para arrumar o cadastro.', 'err');
+        else if (r.motivo === 'sem_sessao') setStatus('⚠️ Aluno fora do card. Você não está logado no Fisk Hub, então não deu para avisar a secretaria automaticamente — avise você mesmo.', 'err');
+        else setStatus('⚠️ Aluno fora do card. Não consegui avisar a secretaria automaticamente — avise você mesmo.', 'err');
+      });
+  }
+
   /* ---- salvar na pasta do aluno + ver pasta ---- */
   function syncDriveBtn() {
     var b = el('btnDrive'); if (b) b.hidden = !(cardLink && window.ultimoPDF);
   }
-  window.onPDFGerado = syncDriveBtn;
+  window.onPDFGerado = function () {
+    syncDriveBtn();
+    avisarForaDoCard('boletim Kids/Teens');
+  };
 
   function mostrarVerPasta(r) {
     var b = el('btnVerPasta'); if (!b) return;
