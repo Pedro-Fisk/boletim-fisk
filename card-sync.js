@@ -364,7 +364,7 @@
               (media < 6 ? '(média baixa, célula vermelha)' : '') + '.', '#1e8f4e');
       // o card é o registro oficial; o planner é um extra que nunca pode
       // derrubar o lançamento — por isso vem depois e engole os próprios erros
-      return atualizarPlannerNoDrive(p, av);
+      return atualizarPlannerNoDrive(p, av, level);
     }).catch(function (e) {
       setPush('⚠️ Não consegui lançar: ' + e.message, '#c0392b');
     }).finally(function () { if (btn) btn.disabled = false; });
@@ -404,12 +404,37 @@
     return m ? m[1] + '_4' + m[2] : campo + '_4';
   }
 
+  /* Estágio lido do NOME do arquivo do planner — "Planner - Essentials 1 -
+     João.pdf", ou o padrão antigo com underline. Devolve o mesmo código
+     canônico do stageCode, para dar para comparar com o estágio do boletim.
+     É função separada de propósito: o stageCode casa por PREFIXO (recebe só o
+     nível) e é usado no texto que vai para a célula do card — mexer nele para
+     aceitar nome de arquivo mudaria o que o card registra.
+     A ordem do MAP importa: "in focus" antes de "focus", e "review" no fim,
+     senão "In Focus Review" cairia em REV. */
+  function stageCodeDoNome(nome) {
+    var norm = String(nome || '').toLowerCase().normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '').replace(/[_\-]+/g, ' ');
+    var MAP = [['essentials', 'ESS'], ['transitions', 'TRA'], ['fluency', 'FLU'],
+               ['pathways', 'PATH'], ['teens connect', 'TC'], ['teens elementary', 'TE'],
+               ['inmediato', 'INM'], ['in focus', 'FOCUS'], ['focus', 'FOCUS'],
+               ['magic way', 'MW'], ['review', 'REV']];
+    for (var i = 0; i < MAP.length; i++) {
+      var k = MAP[i][0], at = norm.indexOf(k);
+      if (at < 0) continue;
+      var d = (norm.slice(at + k.length, at + k.length + 4).match(/^\s*([123])/) || [])[1] || '';
+      var c = MAP[i][1];
+      return c + (c === 'FOCUS' || c === 'MW' ? '' : d);
+    }
+    return '';
+  }
+
   function plannerMsg(html, color) {
     var box = el('cardPushStatus'); if (!box) return;
     box.innerHTML += '<br><span style="font-size:12px;color:' + (color || '#5a6b74') + '">' + html + '</span>';
   }
 
-  function atualizarPlannerNoDrive(p, av) {
+  function atualizarPlannerNoDrive(p, av, nivel) {
     if (!cardLink) return;
     if (typeof PDFLib === 'undefined' || typeof fiskBuscarNoDrive !== 'function') {
       plannerMsg('Planner não atualizado (biblioteca de PDF não carregou).', '#c0392b');
@@ -427,8 +452,28 @@
                    '. A nota foi para o card, mas não para o planner.', '#b8860b');
         return;
       }
-      // vem ordenado do mais recente; se houver mais de um, o atual é o certo
-      return preencherPlanner(base, arqs[0].nome, p, av);
+      /* Escolher pelo ESTÁGIO, não pelo mais recente. O aluno que subiu de
+         estágio tem dois planners na pasta; se o professor lança o boletim do
+         estágio ANTERIOR, "o mais recente" é o planner novo e a nota iria para
+         o documento errado. Sem estágio reconhecido nos dois lados, não
+         escreve: nota na linha errada é pior do que nota faltando, e o card
+         (que é o registro oficial) já recebeu. */
+      var alvo = stageCode(nivel || '');
+      var doEstagio = arqs.filter(function (a) { return stageCodeDoNome(a.nome) === alvo; });
+      if (!doEstagio.length) {
+        if (!nivel || alvo === 'EST') {
+          plannerMsg('Boletim sem estágio definido: usei o planner mais recente (' +
+                     esc(arqs[0].nome) + '). Confira.', '#b8860b');
+          return preencherPlanner(base, arqs[0].nome, p, av);
+        }
+        plannerMsg('A nota foi para o card. No planner NÃO: não achei planner de ' +
+                   esc(nivel) + ' na pasta de ' + esc(cardLink.nome) + ' (lá tem ' +
+                   arqs.map(function (a) { return esc(a.nome); }).join(', ') +
+                   '). Gere o planner desse estágio e lance de novo pelo botão.', '#b8860b');
+        return;
+      }
+      // mais de um do mesmo estágio (planner refeito): o mais recente é o certo
+      return preencherPlanner(base, doEstagio[0].nome, p, av);
     }).catch(function (e) {
       plannerMsg('Não deu para atualizar o planner: ' + esc(e.message || String(e)), '#c0392b');
     });
@@ -449,7 +494,9 @@
             form.getTextField(alvo).setText(fmt(v));
             escritos.push(linha.rotulo);
           } catch (err) {
-            // modelo sem tabela de notas (New Focus, Pathways, In Focus Review)
+            /* modelo sem tabela de notas: New Focus, In Focus Review, Pathways
+               e Review (conferido nos 13 PDFs em 03/08/2026 — antes este
+               comentario esquecia o Review) */
             faltando.push(linha.rotulo);
           }
         });
