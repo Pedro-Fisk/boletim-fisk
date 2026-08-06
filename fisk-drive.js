@@ -51,7 +51,14 @@ async function fiskSalvarNoDrive(opts) {
   var resp = await fetch(endpoint, { method: 'POST', body: JSON.stringify(payload) });
   var j;
   try { j = await resp.json(); }
-  catch (e) { throw new Error('resposta inválida do servidor (o doPost já foi publicado no Apps Script?)'); }
+  catch (e) {
+    /* HTML no lugar de JSON: o Apps Script devolve página de erro quando a
+       execução estoura tempo/cota ou o deployment não está no ar. Ver o
+       jsonSeguro do card-sync — mesma falha, outro caminho (POST). */
+    throw new Error('O servidor não respondeu com dados (o Google devolveu uma página de erro' +
+      (resp.status ? ', HTTP ' + resp.status : '') + '). Espere alguns instantes e tente de novo; ' +
+      'se insistir, o backend pode precisar ser publicado de novo.');
+  }
   if (!j || j.ok !== true) {
     var err = new Error((j && j.erro) || 'falha ao salvar no Drive');
     err.code = (j && j.code) || '';

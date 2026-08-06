@@ -53,13 +53,42 @@
     Object.keys(p).forEach(function (k) { o[k] = p[k]; });
     return o;
   }
+  /* ── Resposta que não é JSON ─────────────────────────────────────────────
+     O Apps Script devolve uma PÁGINA HTML (<!DOCTYPE …>) sempre que a execução
+     não chega ao fim por conta dele: tempo estourado, cota do dia, deployment
+     fora do ar ou o Google pedindo login. Chamar `r.json()` direto estourava
+     com «Unexpected token '<', "<!DOCTYPE "… is not valid JSON» na cara do
+     professor — foi o que apareceu em 06/08/2026 no Abridor de Planners, ao
+     abrir a turma do card. A ponte do servidor (cardProxy_) só traduz o HTML
+     que vem DO CARD; quando é a execução do próprio Hub que morre, não sobra
+     código nosso rodando lá — a última defesa é esta, aqui no navegador.
+     Usa o fiskJson do fisk-shared.js quando existir; senão faz o mesmo aqui,
+     porque a tag do CDN é anterior a este arquivo (cópia local de propósito,
+     como o resto deste arquivo — ver o cabeçalho). */
+  function jsonSeguro(r) {
+    if (typeof window !== 'undefined' && typeof window.fiskJson === 'function') return window.fiskJson(r);
+    return r.text().then(function (txt) {
+      var limpo = String(txt || '').replace(/^\uFEFF/, '').trim();
+      if (limpo.charAt(0) === '{' || limpo.charAt(0) === '[') {
+        try { return JSON.parse(limpo); } catch (e) {}
+      }
+      if (/accounts\.google\.com|Fa(ç|c)a login|Sign in/i.test(limpo)) {
+        throw new Error('O Google pediu login para responder. Abra o Fisk Hub numa aba, ' +
+          'entre com a conta da escola e tente de novo.');
+      }
+      throw new Error('O servidor não respondeu com dados (o Google devolveu uma página de ' +
+        'erro' + (r.status ? ', HTTP ' + r.status : '') + '). Quase sempre é a leitura ' +
+        'estourando o tempo do Google: espere alguns instantes e tente de novo.');
+    });
+  }
+
   function api(params) {
     var P = comSessao(params);
     var qs = Object.keys(P).map(function (k) {
       return k + '=' + encodeURIComponent(P[k]);
     }).join('&');
     return fetch(API_URL + '?' + qs)
-      .then(function (r) { return r.json(); })
+      .then(jsonSeguro)
       .then(function (j) { if (j && j.erro) throw new Error(j.erro); return j; });
   }
 
