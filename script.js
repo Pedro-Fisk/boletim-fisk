@@ -16,6 +16,7 @@ $('confirmClear').addEventListener('click',e=>{ if(e.target===$('confirmClear'))
 $('confirmClearBtn').onclick=()=>{ clearAllFields(); $('confirmClear').classList.remove('open'); };
 function clearAllFields(){
   $('s_name').value=''; $('s_level').value=''; $('notes').value=''; $('suggOther').value='';
+  $('s_year').value=String(CUR_YEAR); $('s_absences').value='';
   document.querySelectorAll('.rg-in').forEach(i=>{ i.value=''; i.disabled=false; });
   $('perfExcelente').checked=false;
   document.querySelectorAll('.rubric .rg-nt').forEach(el=>el.classList.remove('dim'));
@@ -110,6 +111,9 @@ function selectedSuggestions(){return [...$('suggBoxes').querySelectorAll('input
 /* ============ SELETOR DE DATA (calendário do ano vigente ou semana do mês) ============ */
 const CUR_YEAR=new Date().getFullYear();
 const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+/* o ano letivo já entra preenchido com o ano corrente (pedido dos professores):
+   é o mesmo ano da régua do calendário abaixo, e continua editável à mão */
+$('s_year').value=String(CUR_YEAR);
 $('dateSpecific').min=CUR_YEAR+'-01-01';
 $('dateSpecific').max=CUR_YEAR+'-12-31';
 $('weekNum').innerHTML=['Semana 1','Semana 2','Semana 3','Semana 4','Semana 5'].map(w=>'<option>'+w+'</option>').join('');
@@ -215,7 +219,8 @@ function finalCol(lbl,pk,p){return `<div class="final-box"><div class="fh"><div 
   <div class="final-line"><label>Written Test</label><div class="v" id="fl-${pk}-wri">${fmt(num(p.writtenTest))}</div></div>
   <div class="final-line"><label>Oral Performance</label><div class="v" id="fl-${pk}-oral">${fmt(oralResult(p))}</div></div>
   <div class="final-line"><label>Participation</label><div class="v" id="fl-${pk}-part">${fmt(partResult(p))}</div></div>
-  <div class="final-grade"><label>FINAL GRADE</label><div class="v" id="fl-${pk}-final">${fmt(finalGrade(p))}</div></div></div>`;}
+  <div class="final-grade"><label>FINAL GRADE</label><div class="v" id="fl-${pk}-final">${fmt(finalGrade(p))}</div></div>
+  <div class="abs-line"><label>Absences<i>Faltas no período</i></label><div class="v" contenteditable="true" data-pkey="${pk}" data-field="absences" data-kind="abs">${esc(p.absences)}</div></div></div>`;}
 
 /* Ícones dos critérios em SVG inline: os emojis somem no PDF (html2canvas
    não desenha a fonte de emoji colorida). */
@@ -310,6 +315,10 @@ function attachHandlers(){
     if(c!==n){ el.textContent=fmt(c); caretEnd(el); } // limita a 0-10 na hora
     recalc();
   }));
+  /* faltas: texto livre curto, não é nota — não entra em nenhuma média nem é limitado a 0-10 */
+  document.querySelectorAll('#sheetWrap [data-kind="abs"]').forEach(el=>el.addEventListener('input',()=>{
+    STATE[el.dataset.pkey][el.dataset.field]=(el.textContent||'').trim();
+  }));
   document.querySelectorAll('#sheetWrap .obs-box').forEach(box=>box.addEventListener('input',()=>{STATE[box.dataset.pkey][box.dataset.field]=box.innerText;}));
   document.querySelectorAll('#sheetWrap .medcell').forEach(cell=>cell.querySelectorAll('.box').forEach(b=>b.addEventListener('click',()=>{
     const pk=cell.dataset.pkey,f=cell.dataset.field,val=b.dataset.val;const cur=STATE[pk][f];const nv=cur===val?null:val;STATE[pk][f]=nv;
@@ -354,6 +363,7 @@ function setLoadStatus(html,color){ $('loadStatus').innerHTML='<span style="colo
 function applyLoaded(msg){
   const s=(loadedState&&loadedState.student)||{};
   $('s_name').value=s.name||''; $('s_level').value=s.level||'';
+  if((s.year||'').toString().trim()) $('s_year').value=String(s.year).trim();
   document.querySelectorAll('#periodToggle button').forEach(x=>x.classList.toggle('active',x.dataset.p==='2'));
   period='2';
   setLoadStatus('✓ '+(msg||('Boletim de '+(s.name||'aluno')+' carregado.'))+' Preencha a 2ª avaliação.','#1e8f4e');
@@ -404,6 +414,8 @@ async function loadFromPDF(buf){
   state.p1=state.p1||{}; state.p2=state.p2||{};
   const readNum=n=>{ const fl=byName[n]; if(!fl||!fl.getText) return undefined; const t=(fl.getText()||'').trim().replace(',','.'); if(t==='')return undefined; const v=+t; return isNaN(v)?undefined:v; };
   ['p1','p2'].forEach(pk=>GRADE_FIELDS.forEach(fld=>{ const v=readNum('g__'+pk+'__'+fld); if(v!==undefined) state[pk][fld]=v; }));
+  /* faltas: campo de texto, respeita o que foi editado direto no PDF */
+  ['p1','p2'].forEach(pk=>{ const fl=byName['a__'+pk]; if(fl&&fl.getText){ const t=(fl.getText()||'').trim(); if(t) state[pk].absences=t; } });
   return {state, method: state.p1.comment!==undefined?'dados embutidos':'campos do formulário'};
 }
 
@@ -445,7 +457,7 @@ $('generate').onclick=()=>{
   base.student=base.student||{};
   base.student.name=$('s_name').value||base.student.name||'';
   base.student.teacher=$('s_teacher').value||base.student.teacher||'';
-  base.student.year=base.student.year||'';
+  base.student.year=($('s_year').value||'').trim()||base.student.year||String(CUR_YEAR);
   base.student.level=$('s_level').value||base.student.level||'';
   base.p1=base.p1||{}; base.p2=base.p2||{};
   const pk=period==='2'?'p2':'p1';
@@ -471,6 +483,8 @@ $('generate').onclick=()=>{
   base[pk].suggestions=selectedSuggestions();
   base[pk].suggestionsOther=$('suggOther').value;
   const ds=getDateString(); if(ds) base[pk].date=ds;
+  /* faltas em branco não apagam o que já veio do boletim da 1ª avaliação */
+  const abs=($('s_absences').value||'').trim(); if(abs) base[pk].absences=abs;
   renderReport(base);
   mostrarPreview();
 };
@@ -494,7 +508,7 @@ function fileBase(){
   return 'Report Card - '+safe+(raf?' - '+raf:'');
 }
 /* seletor de todas as células de nota que viram campos editáveis no PDF */
-const EDIT_SELECTOR='.gval,.tval,.results-val,.final-line .v,.final-grade .v';
+const EDIT_SELECTOR='.gval,.tval,.results-val,.final-line .v,.final-grade .v,.abs-line .v';
 
 $('pdfBtn').onclick=async()=>{
   const btn=$('pdfBtn'); const label=btn.innerHTML;
@@ -525,6 +539,8 @@ async function generateEditablePDF(){
     if((c.classList.contains('gval')||c.classList.contains('tval')) && c.dataset.pkey && c.dataset.field){
       return 'g__'+c.dataset.pkey+'__'+c.dataset.field;
     }
+    // faltas: nome próprio (não é nota, fica fora do g__ que o loadFromPDF lê como número)
+    if(c.dataset.kind==='abs' && c.dataset.pkey) return 'a__'+c.dataset.pkey;
     return 'c__'+(c.id||('x'+(idx++)));
   }
   for(const sheet of sheets){
@@ -585,6 +601,7 @@ function collectFormDraft(){
     period, chosenScore,
     fields:{
       s_teacher:$('s_teacher').value, s_name:$('s_name').value, s_level:$('s_level').value,
+      s_year:$('s_year').value, s_absences:$('s_absences').value,
       notes:$('notes').value, suggOther:$('suggOther').value,
       perfExcelente:$('perfExcelente').checked,
       dateMode:$('dateMode').value, dateSpecific:$('dateSpecific').value,
@@ -630,6 +647,8 @@ function applyFormDraft(d){
   $('s_teacher').value=f.s_teacher||$('s_teacher').value;
   $('s_name').value=f.s_name||'';
   $('s_level').value=f.s_level||'';
+  $('s_year').value=f.s_year||String(CUR_YEAR);
+  $('s_absences').value=f.s_absences||'';
   $('notes').value=f.notes||'';
   $('suggOther').value=f.suggOther||'';
   $('dateMode').value=f.dateMode||'date';

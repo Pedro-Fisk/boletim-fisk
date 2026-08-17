@@ -153,6 +153,12 @@
   .final-grade{display:grid;grid-template-columns:1fr 90px;gap:8px;align-items:center;background:linear-gradient(90deg,#e9c46a,var(--gold));border-radius:10px;padding:6px 6px;margin-top:6px}
   .final-grade label{text-align:right;color:#fff;font-family:'Poppins';font-weight:800;font-size:14px}
   .final-grade .v{background:#fff;border-radius:8px;text-align:center;font-weight:800;font-size:17px;color:#40120f;padding:4px}
+  /* faltas: fica abaixo da nota final, com desenho neutro de propósito —
+     é registro de frequência, não nota, e não entra em nenhuma média */
+  .abs-line{display:grid;grid-template-columns:1fr 90px;gap:8px;align-items:center;padding:6px;margin-top:6px;border:1.5px dashed var(--red);border-radius:10px}
+  .abs-line label{text-align:right;font-family:'Poppins';font-weight:700;color:#4a5560;font-size:13.5px;line-height:1.15}
+  .abs-line label i{display:block;font-weight:500;font-style:italic;font-size:11px;color:#7a8790}
+  .abs-line .v{border:1.5px solid var(--red);border-radius:8px;text-align:center;font-weight:800;color:#40120f;padding:4px;font-size:15px;min-height:19px;outline:none;background:#fff}
   .ge-labels{display:grid;grid-template-columns:1fr 120px 120px;gap:6px;font-size:10px;font-weight:700;color:var(--gray);text-align:center;margin-bottom:2px}
   .medhead2{display:grid;grid-template-columns:1fr 120px 120px;gap:6px;margin-bottom:2px}
   .medset{display:flex;justify-content:space-around;background:linear-gradient(#fbf3e2,#fff);border:1.5px solid var(--red);border-radius:12px 12px 0 0;padding:4px 2px}
@@ -211,6 +217,9 @@
   .sheet-kids2 .k-fields .hf label{font-weight:700;color:var(--tk-ink);white-space:nowrap}
   .sheet-kids2 .k-fill{flex:1;border-bottom:1.5px solid var(--tk);min-height:19px;padding:0 4px;font-weight:600;color:#20323c}
   .sheet-kids2 .k-fill.k-date{flex:none;width:190px}
+  /* faltas no cabeçalho do kids: caixa curta ao lado do estágio (o boletim de
+     crianças não tem quadro de resultados finais, é uma folha só) */
+  .sheet-kids2 .k-fill.k-abs{flex:none;width:70px;text-align:center;outline:none}
   .sheet-kids2 .k-main{border:2.5px solid var(--tk);border-radius:22px;margin-top:14px;overflow:hidden}
   .sheet-kids2 .k-top{display:grid;grid-template-columns:1fr 330px}
   .sheet-kids2 .k-titleblk{padding:20px 8px 12px 24px}
@@ -262,7 +271,7 @@
   .sheet-es{--red:#6e4220;--red-pill:#59351a;--red-soft:#f4ece3;--red-dark:#59351a;--ink:#3a2712;--box-bd:#c9ae94;--row-line:#efe6dc}
   .sheet-themed .rc-logo-img{height:64px}
   .sheet-themed .gval,.sheet-themed .tval,.sheet-themed .gradecell input,.sheet-themed .testbox input,
-  .sheet-themed .results-val,.sheet-themed .final-line .v,.sheet-themed .final-grade .v,
+  .sheet-themed .results-val,.sheet-themed .final-line .v,.sheet-themed .final-grade .v,.sheet-themed .abs-line .v,
   .sheet-themed .rc-fill,.sheet-themed .rc-datebox .dval,.sheet-themed .sugg-item{color:var(--ink,#1f2c36)}
   .sheet-themed .crit + .crit,.sheet-themed .testrow + .testrow{border-top-color:var(--row-line,#edf0f2)}
   .sheet-themed .medcell .box,.sheet-themed .medal-legend .med-icon .dot{border-color:var(--box-bd,#c3ccd1)}

@@ -9,7 +9,7 @@ $('cancelClear').onclick=()=>$('confirmClear').classList.remove('open');
 $('confirmClear').addEventListener('click',e=>{ if(e.target===$('confirmClear')) $('confirmClear').classList.remove('open'); });
 $('confirmClearBtn').onclick=()=>{ clearAllFields(); $('confirmClear').classList.remove('open'); };
 function clearAllFields(){
-  $('s_name').value=''; $('s_level').value=''; $('extraOther').value='';
+  $('s_name').value=''; $('s_level').value=''; $('extraOther').value=''; $('s_absences').value='';
   $('dateMode').value='date'; $('weekPickers').style.display='none'; $('dateSpecific').style.display=''; $('dateSpecific').value='';
   $('perfExcelente').checked=false;
   document.querySelectorAll('#extraBoxes input:checked').forEach(i=>i.checked=false);
@@ -231,7 +231,7 @@ function renderReport(data){
       <div class="k-fields">
         <div class="hf"><label>Name:</label><div class="k-fill">${esc(s.name)}</div></div>
         <div class="hf"><label>Date:</label><div class="k-fill k-date">${esc(s.date)}</div><label>Teacher:</label><div class="k-fill">${esc(s.teacher)}</div></div>
-        <div class="hf"><label>Estágio:</label><div class="k-fill">${esc(s.level)}</div></div>
+        <div class="hf"><label>Estágio:</label><div class="k-fill">${esc(s.level)}</div><label>Faltas:</label><div class="k-fill k-abs" contenteditable="true" data-kind="abs">${esc(s.absences)}</div></div>
       </div></div>
     <div class="k-main">
       <div class="k-top">
@@ -262,6 +262,10 @@ function renderReport(data){
 
 function attachHandlers(){
   document.querySelectorAll('#sheetWrap .obs-box').forEach(box=>box.addEventListener('input',()=>{STATE[box.dataset.field]=box.innerText;}));
+  /* faltas: texto livre curto, editável no próprio boletim (o PDF do kids é imagem, o valor sai no desenho) */
+  document.querySelectorAll('#sheetWrap [data-kind="abs"]').forEach(el=>el.addEventListener('input',()=>{
+    STATE.student.absences=(el.textContent||'').trim();
+  }));
   document.querySelectorAll('#sheetWrap .medcell').forEach(cell=>cell.querySelectorAll('.box').forEach(b=>b.addEventListener('click',()=>{
     const f=cell.dataset.field,val=b.dataset.val;const cur=STATE.medals[f];const nv=cur===val?null:val;STATE.medals[f]=nv;
     cell.querySelectorAll('.box').forEach(x=>{x.classList.toggle('on',x.dataset.val===nv);x.textContent=x.dataset.val===nv?'✕':'';});})));
@@ -308,6 +312,7 @@ $('generate').onclick=()=>{
       name:$('s_name').value||'',
       teacher:$('s_teacher').value||'',
       level:$('s_level').value||'',
+      absences:($('s_absences').value||'').trim(),
       date:getDateString()
     },
     medals,
@@ -397,7 +402,7 @@ function collectFormDraft(){
     stage:'form', savedAt:Date.now(), chosenScore, medalSel,
     fields:{
       s_teacher:$('s_teacher').value, s_name:$('s_name').value, s_level:$('s_level').value,
-      extraOther:$('extraOther').value, perfExcelente:$('perfExcelente').checked,
+      extraOther:$('extraOther').value, perfExcelente:$('perfExcelente').checked, s_absences:$('s_absences').value,
       dateMode:$('dateMode').value, dateSpecific:$('dateSpecific').value,
       weekNum:$('weekNum').value, weekMonth:$('weekMonth').value,
       extras:selectedExtraPhrases()
@@ -440,6 +445,7 @@ function applyFormDraft(d){
   $('s_name').value=f.s_name||'';
   $('s_level').value=f.s_level||'';
   $('extraOther').value=f.extraOther||'';
+  $('s_absences').value=f.s_absences||'';
   $('dateMode').value=f.dateMode||'date';
   $('dateMode').dispatchEvent(new Event('change'));
   $('dateSpecific').value=f.dateSpecific||'';

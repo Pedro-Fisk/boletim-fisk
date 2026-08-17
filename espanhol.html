@@ -78,6 +78,8 @@
     <input type="text" id="s_name" placeholder="Nome completo do aluno">
     <label class="fld">Nivel <span class="req">*</span></label>
     <input type="text" id="s_level" list="stagesList" placeholder="Comece a digitar..." autocomplete="off"><datalist id="stagesList"></datalist>
+    <label class="fld">Ano letivo <span style="font-weight:600;color:var(--gray)">já vem preenchido com o ano corrente, altere se precisar</span></label>
+    <input type="text" id="s_year" inputmode="numeric" maxlength="9" style="max-width:160px" placeholder="2026">
   </div>
 
   <div class="card">
@@ -98,6 +100,9 @@
         <select id="weekMonth" style="max-width:150px"></select>
       </span>
     </div>
+    <label class="fld">Faltas nesta avaliação (opcional)</label>
+    <p class="hint">Número de faltas do aluno no período. Aparece no boletim, na caixa de resultados desta avaliação, e não entra no cálculo das médias.</p>
+    <input type="text" id="s_absences" inputmode="numeric" maxlength="4" style="max-width:120px" placeholder="ex.: 3">
   </div>
 
   <div class="card">
