@@ -82,6 +82,18 @@
     });
   }
 
+  /* Chamada a uma rota do PRÓPRIO Hub (não à ponte do card): o `comSessao`
+     carimba `action: 'card'`, que é o que a ponte espera, e rotas como o
+     `faltasEstagio` têm ação própria. Só o token é comum às duas. */
+  function apiHub(params) {
+    var P = { token: tokenSessao() };
+    Object.keys(params).forEach(function (k) { P[k] = params[k]; });
+    var qs = Object.keys(P).map(function (k) {
+      return k + '=' + encodeURIComponent(P[k]);
+    }).join('&');
+    return fetch(API_URL + '?' + qs).then(jsonSeguro);
+  }
+
   function api(params) {
     var P = comSessao(params);
     var qs = Object.keys(P).map(function (k) {
@@ -365,6 +377,58 @@
                 'Você ainda pode lançar, mas confirme com a coordenação.', 'err');
     }
     syncPushBtn();
+    buscarFaltasDoEstagio(a, level);
+  }
+
+  /* ============ FALTAS DO ESTÁGIO ============
+     O boletim é do estágio e o card é do semestre: quem começou o estágio no
+     semestre passado tem as faltas partidas em dois cards. O servidor soma as
+     duas pontas (faltasDoEstagio_) e devolve a parcela de cada turma; aqui a
+     tela mostra a SOMA no campo e a ORIGEM embaixo, porque essa soma tem um
+     caso que ela não sabe resolver sozinha (aluno que trocou de estágio no
+     meio do semestre entra com a linha inteira). Com a origem à vista, o
+     professor confere e corrige; sem ela, o número teria cara de exato.
+     Nunca sobrescreve o que o professor já digitou. */
+  function faltasMsg(txt, cor) {
+    var el0 = el('absOrigem'); if (!el0) return;
+    el0.textContent = txt || '';
+    el0.style.color = cor || 'var(--gray)';
+  }
+
+  function buscarFaltasDoEstagio(a, level) {
+    var campo = el('s_absences'); if (!campo) return;
+    var raf = String((a && a.raf) || '').trim();
+    if (!raf) { faltasMsg(''); return; }
+    faltasMsg('⏳ procurando as faltas deste estágio (inclui o semestre anterior)…');
+    apiHub({ action: 'faltasEstagio', raf: raf, book: level || '' })
+      .then(function (r) {
+        if (!r || !r.ok) throw new Error((r && r.erro) || 'resposta vazia');
+        var linhas = (r.linhas || []).filter(function (l) { return l.casa; });
+        if (!linhas.length) {
+          faltasMsg('não achei este estágio no card para somar as faltas, preencha à mão.');
+          return;
+        }
+        /* só preenche campo vazio: o que o professor digitou vale mais */
+        if (!String(campo.value || '').trim()) {
+          campo.value = String(r.total);
+          campo.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        var partes = linhas.map(function (l) {
+          return l.faltas + ' ' + (l.semestre === 'anterior' ? 'no semestre anterior' : 'neste semestre') +
+                 ' (' + l.turma + ')';
+        }).join(' + ');
+        var aviso = '';
+        if ((r.semCardAnterior || []).length) {
+          aviso = ' ⚠️ não consegui abrir o card do semestre anterior de ' +
+                  r.semCardAnterior.join(' e ') + ', o total pode estar incompleto.';
+        }
+        faltasMsg('somei ' + r.total + ' falta(s) do estágio ' + r.estagio + ': ' + partes +
+                  '. Confira e ajuste se o aluno trocou de estágio no meio do semestre.' + aviso,
+                  '#1e8f4e');
+      })
+      .catch(function (e) {
+        faltasMsg('não consegui buscar as faltas no card (' + e.message + '), preencha à mão.', '#c0392b');
+      });
   }
 
   /* ============ LANÇAR NO CARD ============ */
