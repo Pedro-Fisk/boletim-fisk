@@ -7,7 +7,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/pedro-fisk/fisk-hub@v1.0.0/assets/fisk-shared.css">
+<!-- ⚠️ `@main`, e NÃO uma tag de versão, de propósito.
+     Estas páginas apontavam para `@v1.0.0`, que é o commit em que o kit
+     compartilhado NASCEU. O `fisk-shared.js` cresceu de 3,3 KB para 41,9 KB
+     desde então, mas a tag nunca se moveu — e o navegador do professor
+     recebia um arquivo com 3 funções onde a página chamava 26. `fiskJson`,
+     `comSessao` e `fiskHubBase` chegavam como `undefined`, e a ferramenta
+     morria sem dizer por quê (medido em produção, 02/09/2026).
+     Tag fixa só funciona quando alguém lembra de subi-la; ninguém lembrou por
+     meses. `@main` troca isso por até 12 h de cache do jsDelivr, que é o
+     preço certo para uma biblioteca que muda pouco e não pode ficar velha. -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/pedro-fisk/fisk-hub@main/assets/fisk-shared.css">
 <link rel="stylesheet" href="style.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
@@ -245,7 +255,7 @@
   <p>Ferramenta desenvolvida exclusivamente para uso interno das escolas Fisk. A utilização deste sistema e de seu conteúdo por pessoas ou instituições não autorizadas, incluindo professores particulares, é proibida. Desenvolvido por @fiskcacapava e @taubatefisk</p>
 </footer>
 
-<script src="https://cdn.jsdelivr.net/gh/pedro-fisk/fisk-hub@v1.0.0/assets/fisk-shared.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/pedro-fisk/fisk-hub@main/assets/fisk-shared.js"></script>
 <script src="fisk-drive.js"></script>
 <script src="logo.js"></script>
 <script src="mic.js"></script>
