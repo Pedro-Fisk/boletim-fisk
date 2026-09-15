@@ -75,11 +75,51 @@
     <input type="text" id="s_teacher" placeholder="Seu nome">
     <div style="border-top:1.5px solid var(--line);margin-top:18px;padding-top:6px"></div>
     <h2 style="margin-top:10px">📂 Já começou este boletim? (2ª avaliação)</h2>
-    <p class="hint">Suba aqui o próprio PDF do boletim da 1ª avaliação (o que você gerou nesta ferramenta). A 1ª coluna é reconstruída automaticamente e você só preenche a 2ª.</p>
+    <p class="hint">Traga o próprio PDF do boletim da 1ª avaliação (o que você gerou nesta ferramenta): se ele já foi salvo na pasta do aluno, use “Buscar no Drive”; se está no seu computador, suba o arquivo. A 1ª coluna é reconstruída automaticamente e você só preenche a 2ª.</p>
+      <div class="row-inline" style="gap:10px;flex-wrap:wrap;align-items:center">
+        <button type="button" class="btn btn-ghost btn-sm" id="btnBuscarDrive">🔍 Buscar no Drive</button>
+        <span style="font-size:11.5px;color:var(--gray);font-weight:600">acha na pasta do aluno os boletins gerados aqui, escolha o aluno em “Conectar ao card” primeiro</span>
+      </div>
+      <div id="driveHits" hidden style="margin-top:10px"></div>
+      <div style="font-size:11.5px;color:var(--gray);font-weight:700;margin:12px 0 6px">ou suba o arquivo do seu computador:</div>
     <div class="loadbox">
       <input type="file" id="loadFile" accept=".pdf,application/pdf,.fiskjson,.json">
       <div id="loadStatus" style="margin-top:8px"></div>
     </div>
+  </div>
+
+  <div class="card" id="cardConnect">
+    <h2>🔗 Conectar ao card <span style="font-size:12px;color:var(--gray);font-weight:600">(opcional, lança a nota direto na planilha)</span></h2>
+    <p class="hint">Escolha o aluno pela turma do card: o nome e o estágio já vêm preenchidos e, ao final, a nota é lançada automaticamente na célula da planilha (média abaixo de 6 fica vermelha = gatilho da 2ª chance). Na 2ª avaliação, a 1ª é puxada do card, sem precisar subir o PDF.</p>
+    <div class="loadbox" id="cardCascade" hidden>
+      <!-- logado pelo Fisk Hub: escola e professor(a) já vêm da sessão e só sobra a turma -->
+      <div id="cardEuSou" hidden style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
+        <span style="font-weight:700;font-size:13px">👤 <span id="cardEuNome"></span></span>
+        <span style="font-size:11.5px;color:var(--gray);font-weight:600" id="cardEuEscola"></span>
+        <button type="button" class="btn btn-ghost btn-sm" id="btnTrocarProf">trocar professor(a)</button>
+      </div>
+      <!-- padrão do Hub (termo-atraso): rótulo em cima e o indicador de
+           carregamento AO LADO DO RÓTULO, igual nos três campos -->
+      <div class="row-inline" style="gap:14px;flex-wrap:wrap;align-items:flex-start">
+        <span id="wrapEscola" style="flex:1 1 170px">
+          <label class="fld" style="margin-top:0">Escola<span id="indEscola" class="ind"></span></label>
+          <select id="selEscola" style="width:100%" disabled><option value="" disabled selected>Escola…</option></select>
+        </span>
+        <span id="wrapProf" style="flex:1 1 190px">
+          <label class="fld" style="margin-top:0">Professor(a)<span id="indProf" class="ind"></span></label>
+          <select id="selProf" style="width:100%" disabled><option value="" disabled selected>Professor(a)…</option></select>
+        </span>
+        <span style="flex:2 1 240px">
+          <label class="fld" style="margin-top:0">Turma<span id="indTurma" class="ind"></span></label>
+          <select id="selTurma" style="width:100%" disabled><option value="" disabled selected>Turma…</option></select>
+        </span>
+      </div>
+    </div>
+    <div id="cardAlunoWrap" hidden style="margin-top:12px">
+      <label class="fld">Aluno da turma <b id="cardTurmaNome" style="color:var(--ui)"></b></label>
+      <select id="selAluno"><option value="" disabled selected>Escolha o aluno…</option></select>
+    </div>
+    <div id="cardStatus" class="status" style="margin-top:12px"></div>
   </div>
 
   <div class="card">
@@ -113,6 +153,7 @@
     <label class="fld">Faltas nesta avaliação (opcional)</label>
     <p class="hint">Número de faltas do aluno no período. Aparece no boletim, na caixa de resultados desta avaliação, e não entra no cálculo das médias.</p>
     <input type="text" id="s_absences" inputmode="numeric" maxlength="4" style="max-width:120px" placeholder="ex.: 3">
+    <div id="absOrigem" style="font-size:11.5px;color:var(--gray);font-weight:600;margin-top:6px"></div>
   </div>
 
   <div class="card">
@@ -205,6 +246,10 @@
 <div id="preview">
   <div class="toolbar">
     <button class="btn btn-ghost btn-sm" id="backBtn">↑ Voltar ao formulário</button>
+    <span id="cardPushStatus" style="font-weight:700;font-size:13px"></span>
+    <button class="btn btn-ghost btn-sm" id="cardPushBtn" hidden>📤 Lançar no card</button>
+    <button class="btn btn-ghost btn-sm" id="btnDrive" hidden>📁 Salvar na pasta do aluno</button>
+    <a class="btn btn-ghost btn-sm" id="btnVerPasta" hidden target="_blank" rel="noopener">📂 Ver pasta</a>
     <span class="grow note">Clique nas notas para ajustar. As médias recalculam sozinhas. Baixe o PDF: ele guarda os dados para reabrir na 2ª avaliação.</span>
     <button class="btn btn-generate btn-sm" id="pdfBtn">🖨️ Baixar PDF</button>
   </div>
@@ -216,8 +261,14 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/gh/pedro-fisk/fisk-hub@main/assets/fisk-shared.js"></script>
+<script src="fisk-drive.js"></script>
 <script src="logo.js"></script>
 <script src="mic.js"></script>
 <script src="script-espanhol.js"></script>
+<!-- a conexão com o card, a mesma do boletim de inglês (Pedro, 15/09/2026): trava do placeholder, nota no card e no planner -->
+<script>window.BOLETIM_DOCUMENTO = 'boletim Espanhol';</script>
+<script src="fisk-fora-do-card.js"></script>
+<script src="planner-v2-notas.js"></script>
+<script src="card-sync.js"></script>
 </body>
 </html>

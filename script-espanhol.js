@@ -467,6 +467,9 @@ async function loadFromPDF(buf){
 /* ============ GENERATE ============ */
 const GRADE_LABELS={listeningTest:'A escucha',writtenTest:'B escrita',fluencia:'C fluencia',pronunciacion:'D pronunciación',vocabulario:'E vocabulario',comportamiento:'F comportamiento',social:'G social',tarea:'H tarea',cyber:'I cyber'};
 $('generate').onclick=()=>{
+  /* a trava do placeholder (card-sync.js, Pedro 15/09/2026): só aluno do card com cronograma da secretaria */
+  const trava=window.fiskPodeCriarBoletim?window.fiskPodeCriarBoletim():{ok:false,msg:'A conexão com o card não carregou: recarregue a página.'};
+  if(!trava.ok){ const g=$('genStatus'); if(g){ g.textContent=trava.msg; g.className='status err'; } const c=$('cardStatus'); if(c) c.scrollIntoView({behavior:'smooth',block:'center'}); return; }
   if($('perfExcelente').checked) chosenScore=10;
   const base = loadedState ? JSON.parse(JSON.stringify(loadedState)) : {student:{},p1:{},p2:{}};
   base.student=base.student||{};
@@ -518,12 +521,16 @@ $('backBtn').onclick=()=>{ $('app').scrollIntoView({behavior:'smooth', block:'st
 function fileBase(){
   const nm=(STATE&&STATE.student&&STATE.student.name)?STATE.student.name.trim():'';
   const safe=(nm||'Aluno').replace(/[\\/:*?"<>|]+/g,'').replace(/\s+/g,' ').trim();
-  return 'Report Card Espanhol - '+safe;
+  // RAF no nome do arquivo (vem do vínculo com o card, via card-sync.js), como no boletim de inglês
+  const raf=String(window.RAF_DO_CARD||'').trim();
+  return 'Report Card Espanhol - '+safe+(raf?' - '+raf:'');
 }
 /* seletor de todas as células de nota que viram campos editáveis no PDF */
 const EDIT_SELECTOR='.gval,.tval,.results-val,.final-line .v,.final-grade .v,.abs-line .v';
 
 $('pdfBtn').onclick=async()=>{
+  const trava=window.fiskPodeCriarBoletim?window.fiskPodeCriarBoletim():{ok:false,msg:'A conexão com o card não carregou: recarregue a página.'};
+  if(!trava.ok){ alert(trava.msg); return; }
   const btn=$('pdfBtn'); const label=btn.innerHTML;
   if(!window.PDFLib || !window.html2canvas){
     // fallback: impressão comum se as bibliotecas não carregaram
@@ -594,6 +601,9 @@ async function generateEditablePDF(){
   const bytes=await pdf.save({updateFieldAppearances:false});
   const blob=new Blob([bytes],{type:'application/pdf'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fileBase()+'.pdf';a.click();
+  /* guarda o PDF recém-gerado para o botão "Salvar na pasta do aluno" (card-sync.js) */
+  window.ultimoPDF={ bytes:bytes, filename:a.download, aluno:((STATE&&STATE.student&&STATE.student.name)||'').trim() };
+  if(typeof window.onPDFGerado==='function') window.onPDFGerado();
   setTimeout(()=>URL.revokeObjectURL(a.href),4000);
   clearDraft();
 }

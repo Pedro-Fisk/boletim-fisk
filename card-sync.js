@@ -121,6 +121,8 @@
   function stageCode(level) {
     var s = (level || '').trim(); if (!s) return 'EST';
     var norm = s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    /* o Inmediato vai até 3 e o card pode escrever "Español Inmediato 2": casa em qualquer ponto */
+    var inm = norm.match(/inmediato\s*([123])/); if (inm) return 'INM' + inm[1];
     var m = norm.match(/([12])\s*$/); var digit = m ? m[1] : '';
     var base = norm.replace(/\s*[12]\s*$/, '').trim();
     var MAP = [
@@ -455,7 +457,8 @@
     if (!cardLink || !STATE) return Promise.resolve();
     var pk = currentPk();
     var p = STATE[pk] || {};
-    var faltando = FIELDS.filter(function (f) { return p[f] == null || p[f] === ''; });
+    /* os campos da página (o espanhol tem nove: fluencia, comportamiento, cyber...); o inglês cai no FIELDS */
+    var faltando = (typeof GRADE_FIELDS !== 'undefined' ? GRADE_FIELDS : FIELDS).filter(function (f) { return p[f] == null || p[f] === ''; });
     if (faltando.length) {
       setPush('⚠️ Notas incompletas, não lancei no card.', '#c0392b');
       return Promise.resolve();
@@ -500,9 +503,9 @@
   var PLANNER_LINHAS = [
     { rotulo: 'WRITING', v2: 'writing',       campo: '1st TEST 2nd TESTAVERAGE.1',     valor: function (p) { return num(p.writtenTest); } },
     { rotulo: 'LISTENING', v2: 'listening',     campo: '1st TEST 2nd TESTWRITING',       valor: function (p) { return num(p.listeningTest); } },
-    { rotulo: 'ORAL', v2: 'oral',          campo: '1st TEST 2nd TESTLISTENING',     valor: function (p) { return avg([p.fluency, p.pronunciation]); } },
-    { rotulo: 'PARTICIPATION', v2: 'participation', campo: '1st TEST 2nd TESTORAL',          valor: function (p) { return num(p.participation); } },
-    { rotulo: 'CYBER', v2: 'cyber',         campo: '1st TEST 2nd TESTPARTICIPATION', valor: function (p) { return num(p.dedication); } },
+    { rotulo: 'ORAL', v2: 'oral',          campo: '1st TEST 2nd TESTLISTENING',     valor: function (p) { return p.fluencia !== undefined ? avg([p.fluencia, p.pronunciacion]) : avg([p.fluency, p.pronunciation]); } },
+    { rotulo: 'PARTICIPATION', v2: 'participation', campo: '1st TEST 2nd TESTORAL',          valor: function (p) { return p.comportamiento !== undefined ? avg([p.comportamiento, p.social, p.tarea]) : num(p.participation); } },
+    { rotulo: 'CYBER', v2: 'cyber',         campo: '1st TEST 2nd TESTPARTICIPATION', valor: function (p) { return p.cyber !== undefined ? num(p.cyber) : num(p.dedication); } },
     { rotulo: 'AVERAGE', v2: 'average',       campo: '1st TEST 2nd TESTAVERAGE.0',     valor: function (p) { return finalGrade(p); } }
   ];
 
@@ -716,7 +719,7 @@
   }
   window.onPDFGerado = function () {   // script.js chama ao terminar de gerar
     syncDriveBtn();
-    avisarForaDoCard('boletim Jovens/Adultos');
+    avisarForaDoCard(window.BOLETIM_DOCUMENTO || 'boletim Jovens/Adultos');
   };
 
   /* depois de salvar, o professor precisa CONFERIR onde caiu (a pasta é achada
