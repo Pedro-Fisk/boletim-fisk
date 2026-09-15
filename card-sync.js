@@ -21,6 +21,19 @@
   /* vínculo atual com um aluno do card. null = boletim sem vínculo (modo antigo). */
   var cardLink = null;   // { escola, prof, linhaCard, book, nome }
 
+  /* ── A TRAVA DO PLACEHOLDER (Pedro, 15/09/2026) ──────────────────────────
+     A mesma regra do criador de planners: o boletim só é montado para aluno do card com o cronograma (os
+     placeholders .L1, .L2…) lançado pela secretaria. Sem aluno escolhido, aluno fora do card ("sem vínculo") ou
+     aluno sem placeholder, "Montar boletim" e "Baixar PDF" não andam (script.js pergunta aqui). O `temPlaceholder`
+     vem do fn=turma; resposta sem o campo também trava. */
+  var MSG_TRAVA = {
+    escolha: '🔒 Escolha a turma e o aluno no card. O boletim só é criado para quem já tem o cronograma (os placeholders) lançado pela secretaria.',
+    fora: '🔒 Aluno fora do card não tem cronograma: o boletim não pode ser criado. Avise a secretaria para cadastrar o aluno e lançar os placeholders.',
+    sem: '🔒 Este aluno ainda não tem o cronograma no card (os placeholders da secretaria). O boletim só pode ser criado depois que a secretaria lançar.'
+  };
+  var trava = { ok: false, motivo: 'escolha', msg: MSG_TRAVA.escolha };
+  window.fiskPodeCriarBoletim = function () { return trava; };
+
   var LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
   var FIELDS  = ['listeningTest', 'writtenTest', 'fluency', 'pronunciation',
                  'vocabulary', 'participation', 'dedication', 'socialization'];
@@ -315,6 +328,7 @@
 
   /* ============ TURMA CARREGADA → picker de alunos ============ */
   function onTurmaLoaded(dados) {
+    trava = { ok: false, motivo: 'escolha', msg: MSG_TRAVA.escolha };   /* turma nova: nenhum aluno escolhido ainda */
     var alunos = (dados.alunos || []).filter(function (a) { return a && a.nome; });
     el('cardTurmaNome').textContent = dados.turma ? '- ' + dados.turma : '';
     var sel = el('selAluno');
@@ -332,7 +346,8 @@
       if (sel.value === '__none__') {
         cardLink = null; window.RAF_DO_CARD = ''; syncPushBtn();
         ONDE_ESTAVA = { escola: dados.escola, prof: dados.aba, turma: dados.turma || '' };
-        setStatus('⚠️ Aluno fora do card: o boletim NÃO será lançado na planilha, e a secretaria será avisada para arrumar o cadastro. Preencha o nome e o estágio à mão.', 'err');
+        trava = { ok: false, motivo: 'fora', msg: MSG_TRAVA.fora };
+        setStatus(MSG_TRAVA.fora, 'err');
         return;
       }
       ONDE_ESTAVA = null;
@@ -376,6 +391,8 @@
       setStatus('⚠️ ' + a.nome + 'é do Focus. O curso usa simulados MET, não boletim formal.' +
                 'Você ainda pode lançar, mas confirme com a coordenação.', 'err');
     }
+    trava = a.temPlaceholder === true ? { ok: true, motivo: '', msg: '' } : { ok: false, motivo: 'sem', msg: MSG_TRAVA.sem };
+    if (!trava.ok) setStatus(MSG_TRAVA.sem, 'err');
     syncPushBtn();
     buscarFaltasDoEstagio(a, level);
   }
@@ -481,12 +498,12 @@
      COLUNAS: cada TEST tem 3 sub-colunas. A nota vai na PRIMEIRA de cada
      bloco — sufixo vazio na 1ª avaliação, "_4" na 2ª. */
   var PLANNER_LINHAS = [
-    { rotulo: 'WRITING',       campo: '1st TEST 2nd TESTAVERAGE.1',     valor: function (p) { return num(p.writtenTest); } },
-    { rotulo: 'LISTENING',     campo: '1st TEST 2nd TESTWRITING',       valor: function (p) { return num(p.listeningTest); } },
-    { rotulo: 'ORAL',          campo: '1st TEST 2nd TESTLISTENING',     valor: function (p) { return avg([p.fluency, p.pronunciation]); } },
-    { rotulo: 'PARTICIPATION', campo: '1st TEST 2nd TESTORAL',          valor: function (p) { return num(p.participation); } },
-    { rotulo: 'CYBER',         campo: '1st TEST 2nd TESTPARTICIPATION', valor: function (p) { return num(p.dedication); } },
-    { rotulo: 'AVERAGE',       campo: '1st TEST 2nd TESTAVERAGE.0',     valor: function (p) { return finalGrade(p); } }
+    { rotulo: 'WRITING', v2: 'writing',       campo: '1st TEST 2nd TESTAVERAGE.1',     valor: function (p) { return num(p.writtenTest); } },
+    { rotulo: 'LISTENING', v2: 'listening',     campo: '1st TEST 2nd TESTWRITING',       valor: function (p) { return num(p.listeningTest); } },
+    { rotulo: 'ORAL', v2: 'oral',          campo: '1st TEST 2nd TESTLISTENING',     valor: function (p) { return avg([p.fluency, p.pronunciation]); } },
+    { rotulo: 'PARTICIPATION', v2: 'participation', campo: '1st TEST 2nd TESTORAL',          valor: function (p) { return num(p.participation); } },
+    { rotulo: 'CYBER', v2: 'cyber',         campo: '1st TEST 2nd TESTPARTICIPATION', valor: function (p) { return num(p.dedication); } },
+    { rotulo: 'AVERAGE', v2: 'average',       campo: '1st TEST 2nd TESTAVERAGE.0',     valor: function (p) { return finalGrade(p); } }
   ];
 
   /* 1ª avaliação = 1ª coluna do bloco "1st TEST" (nome base).
@@ -557,7 +574,7 @@
         if (!nivel || alvo === 'EST') {
           plannerMsg('Boletim sem estágio definido: usei o planner mais recente (' +
                      esc(arqs[0].nome) + '). Confira.', '#b8860b');
-          return preencherPlanner(base, arqs[0].nome, p, av);
+          return preencherPlanner(base, arqs[0].nome, p, av, stageCodeDoNome(arqs[0].nome));
         }
         plannerMsg('A nota foi para o card. No planner NÃO: não achei planner de ' +
                    esc(nivel) + ' na pasta de ' + esc(cardLink.nome) + ' (lá tem ' +
@@ -566,18 +583,20 @@
         return;
       }
       // mais de um do mesmo estágio (planner refeito): o mais recente é o certo
-      return preencherPlanner(base, doEstagio[0].nome, p, av);
+      return preencherPlanner(base, doEstagio[0].nome, p, av, alvo);
     }).catch(function (e) {
       plannerMsg('Não deu para atualizar o planner: ' + esc(e.message || String(e)), '#c0392b');
     });
   }
 
-  function preencherPlanner(base, nome, p, av) {
+  function preencherPlanner(base, nome, p, av, codigo) {
     var opts = {}; for (var k in base) opts[k] = base[k];
     opts.filename = nome;
     return fiskBuscarNoDrive(opts).then(function (f) {
       return PDFLib.PDFDocument.load(f.bytes).then(function (pdf) {
         var form = pdf.getForm();
+        /* o planner NOVO (v2) não tem formulário: a nota vai por coordenada no quadro da faixa da prova */
+        if (!form.getFields().length && /\bv2\b/.test(String(pdf.getTitle() || ''))) return escreverNoV2(pdf, base, nome, p, av, codigo || stageCodeDoNome(nome));
         var escritos = [], faltando = [];
         PLANNER_LINHAS.forEach(function (linha) {
           var v = linha.valor(p);
@@ -609,6 +628,51 @@
                        'ª avaliação (' + escritos.join(', ') + ').', '#1e8f4e');
           });
         });
+      });
+    });
+  }
+
+  /* ============ A NOTA NO PLANNER NOVO (v2) ============
+     O planner v2 (planner-fisk/gabarito-v2) não tem campo de formulário. Desde 15/09/2026 ele traz, na faixa de cada
+     prova, o quadro "Report Card 1/2" com as seis linhas da tabela antiga (Writing, Listening, Oral, Participation,
+     Cyber, Average), e as coordenadas das caixas vêm do planner-v2-notas.js (gerado junto com o PDF). A nota é
+     escrita por cima, com um fundo branco que cobre a nota anterior: lançar de novo corrige, não sobrepõe.
+     O título do PDF diz se ele já tem o quadro ("v2 · notas"): planner v2 gerado antes disso não tem onde escrever. */
+  function escreverNoV2(pdf, base, nome, p, av, codigo) {
+    var mapa = window.PLANNER_V2_NOTAS && window.PLANNER_V2_NOTAS[codigo];
+    if (!/notas/.test(String(pdf.getTitle() || ''))) {
+      plannerMsg('O planner “' + esc(nome) + '” é do modelo novo, mas foi gerado antes do quadro de notas. ' +
+                 'Gere o planner de novo no criador de planners e lance a nota outra vez pelo botão.', '#b8860b');
+      return;
+    }
+    var caixas = mapa && mapa[String(av)];
+    if (!caixas) {
+      plannerMsg('Não sei onde fica o quadro de notas do planner “' + esc(nome) + '” (estágio ' + esc(codigo || '?') + '). A nota foi só para o card.', '#b8860b');
+      return;
+    }
+    var escritos = [];
+    return pdf.embedFont(PDFLib.StandardFonts.HelveticaBold).then(function (font) {
+      var pages = pdf.getPages();
+      PLANNER_LINHAS.forEach(function (linha) {
+        var v = linha.valor(p), c = caixas[linha.v2];
+        if (v === null || v === undefined || v === '' || !c || !pages[c.page]) return;
+        var pg = pages[c.page], txt = fmt(v);
+        pg.drawRectangle({ x: c.x + 1, y: c.y + 1, width: c.w - 2, height: c.h - 2, color: PDFLib.rgb(1, 1, 1) });
+        var tam = Math.min(c.h * 0.62, 9);
+        while (tam > 5 && font.widthOfTextAtSize(txt, tam) > c.w - 3) tam -= 0.5;
+        pg.drawText(txt, { x: c.x + (c.w - font.widthOfTextAtSize(txt, tam)) / 2, y: c.y + (c.h - tam * 0.72) / 2,
+                           size: tam, font: font, color: PDFLib.rgb(0.114, 0.212, 0.522) });
+        escritos.push(linha.rotulo);
+      });
+      if (!escritos.length) return null;
+      return pdf.save();
+    }).then(function (bytes) {
+      if (!bytes) return;
+      var envio = {}; for (var k2 in base) envio[k2] = base[k2];
+      envio.tipo = 'aluno'; envio.filename = nome; envio.bytes = bytes;
+      return fiskSalvarNoDrive(envio).then(function () {
+        plannerMsg('✓ Planner “' + esc(nome) + '” atualizado com a ' + av + 'ª avaliação no quadro Report Card ' + av +
+                   ' (' + escritos.join(', ') + ').', '#1e8f4e');
       });
     });
   }
