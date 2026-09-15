@@ -636,15 +636,21 @@
   }
 
   /* ============ A NOTA NO PLANNER NOVO (v2) ============
-     O planner v2 (planner-fisk/gabarito-v2) não tem campo de formulário. Desde 15/09/2026 ele traz, na faixa de cada
-     prova, o quadro "Report Card 1/2" com as seis linhas da tabela antiga (Writing, Listening, Oral, Participation,
-     Cyber, Average), e as coordenadas das caixas vêm do planner-v2-notas.js (gerado junto com o PDF). A nota é
-     escrita por cima, com um fundo branco que cobre a nota anterior: lançar de novo corrige, não sobrepõe.
-     O título do PDF diz se ele já tem o quadro ("v2 · notas"): planner v2 gerado antes disso não tem onde escrever. */
+     O planner v2 (planner-fisk/gabarito-v2) não tem campo de formulário. Desde 15/09/2026 (Pedro) a tabela das
+     provas mora no CABEÇALHO, como no papel antigo: Listening, Written, Oral, Participation e Average, com três
+     colunas por prova (a prova e duas recuperações). O gerador escreve na coluna 1 de cada prova; as recuperações
+     são à mão. Não há linha de Cyber (a do CYBER fica sem caixa e é pulada). As coordenadas vêm do
+     planner-v2-notas.js, gerado junto com o PDF. A nota vai por cima, com o fundo da célula por baixo: lançar de
+     novo corrige, não sobrepõe. O título do PDF diz o desenho: só "v2 · cab-notas" tem a tabela no cabeçalho (o
+     "v2 · notas" de antes tinha o quadro na faixa da prova, em outro lugar da folha). */
   function escreverNoV2(pdf, base, nome, p, av, codigo) {
     var mapa = window.PLANNER_V2_NOTAS && window.PLANNER_V2_NOTAS[codigo];
-    if (!/notas/.test(String(pdf.getTitle() || ''))) {
-      plannerMsg('O planner “' + esc(nome) + '” é do modelo novo, mas foi gerado antes do quadro de notas. ' +
+    if (codigo === 'FOCUS') {
+      plannerMsg('O In Focus não tem tabela de provas no planner (os simulados do MET são a nota). A nota foi só para o card.', '#b8860b');
+      return;
+    }
+    if (!/cab-notas/.test(String(pdf.getTitle() || ''))) {
+      plannerMsg('O planner “' + esc(nome) + '” é do modelo novo, mas foi gerado antes da tabela das provas no cabeçalho. ' +
                  'Gere o planner de novo no criador de planners e lance a nota outra vez pelo botão.', '#b8860b');
       return;
     }
@@ -660,7 +666,8 @@
         var v = linha.valor(p), c = caixas[linha.v2];
         if (v === null || v === undefined || v === '' || !c || !pages[c.page]) return;
         var pg = pages[c.page], txt = fmt(v);
-        pg.drawRectangle({ x: c.x + 1, y: c.y + 1, width: c.w - 2, height: c.h - 2, color: PDFLib.rgb(1, 1, 1) });
+        /* o fundo da célula: branco, e o azul-claro da linha Average */
+        pg.drawRectangle({ x: c.x + 1, y: c.y + 0.8, width: c.w - 2, height: c.h - 1.6, color: linha.v2 === 'average' ? PDFLib.rgb(0.933, 0.949, 0.98) : PDFLib.rgb(1, 1, 1) });
         var tam = Math.min(c.h * 0.62, 9);
         while (tam > 5 && font.widthOfTextAtSize(txt, tam) > c.w - 3) tam -= 0.5;
         pg.drawText(txt, { x: c.x + (c.w - font.widthOfTextAtSize(txt, tam)) / 2, y: c.y + (c.h - tam * 0.72) / 2,
@@ -674,7 +681,7 @@
       var envio = {}; for (var k2 in base) envio[k2] = base[k2];
       envio.tipo = 'aluno'; envio.filename = nome; envio.bytes = bytes;
       return fiskSalvarNoDrive(envio).then(function () {
-        plannerMsg('✓ Planner “' + esc(nome) + '” atualizado com a ' + av + 'ª avaliação no quadro Report Card ' + av +
+        plannerMsg('✓ Planner “' + esc(nome) + '” atualizado com a ' + av + 'ª avaliação na tabela das provas do cabeçalho' +
                    ' (' + escritos.join(', ') + ').', '#1e8f4e');
       });
     });
