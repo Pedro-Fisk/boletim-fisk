@@ -475,6 +475,19 @@
     }).then(function () {
       setPush('✓ ' + av + 'ª avaliação lançada no card' +
               (media < 6 ? '(média baixa, célula vermelha)' : '') + '.', '#1e8f4e');
+      /* A MESMA NOTA NO E-COUNSELING DO ALUNO (20/09/2026). O documento de
+         acompanhamento fica na mesma pasta onde este boletim é salvo, e a
+         média da avaliação é justamente o que se procura nele um semestre
+         depois. Silencioso e sem bloquear: o card é o registro oficial, e
+         uma falha aqui não pode virar "não lancei a nota". O servidor recusa
+         linha repetida, então relançar a mesma nota não duplica. */
+      if (typeof fiskCounseling === 'function') {
+        fiskCounseling({
+          escola: cardLink.escola, professor: cardLink.prof, turma: cardLink.turma,
+          aluno: cardLink.nome, origem: 'nota',
+          campos: { avaliacao: String(av), nota: String(media).replace('.', ','), estagio: level }
+        });
+      }
       // o card é o registro oficial; o planner é um extra que nunca pode
       // derrubar o lançamento — por isso vem depois e engole os próprios erros
       return atualizarPlannerNoDrive(p, av, level);
