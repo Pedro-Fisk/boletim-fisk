@@ -209,19 +209,31 @@ function bestFieldFor(word){
   const maxD=word.length<=4?1:(word.length<=7?2:3);
   return (bf && bd<=maxD)?{field:bf,dist:bd}:null;
 }
+/* AS DUAS ORDENS (Pedro, 06/10/2026). O professor escreve ou dita de dois jeitos: "escrita 8, escuta 9" (o critério
+   antes da nota) e "8 de escrita, 9 de escuta" (a nota antes do critério). A leitura antiga só entendia o primeiro, e
+   no segundo dava a cada critério a nota do VIZINHO, calada. A ordem é decidida uma vez, pelo começo do texto: se
+   existe um critério antes do primeiro número, é "critério, nota"; se o texto chega ao primeiro número sem critério
+   nenhum ("o Lucas tirou 8 de escrita"), é "nota, critério", e cada nota procura o critério entre ela e a próxima. */
 function parseNotes(raw){
   const out={}, bestDist={};
   const text=wordsToNumbers(normalize(raw));
   const numRe=/(-?\d+(?:[.,]\d+)?)/g;
-  let m;
-  while((m=numRe.exec(text))!==null){
-    const val=parseFloat(m[1].replace(',','.'));
-    const before=text.slice(Math.max(0,m.index-30), m.index); // janela antes do número
-    const words=before.match(/[a-z]{3,}/g)||[];
+  const nums=[]; let m;
+  while((m=numRe.exec(text))!==null) nums.push({i:m.index, fim:m.index+m[1].length, val:parseFloat(m[1].replace(',','.'))});
+  if(!nums.length) return out;
+  const criterioAntes=(text.slice(0,nums[0].i).match(/[a-z]{3,}/g)||[]).some(w=>bestFieldFor(w));
+  nums.forEach((n,k)=>{
     let hit=null;
-    for(let i=words.length-1;i>=0;i--){ const r=bestFieldFor(words[i]); if(r){ hit=r; break; } } // a mais próxima vence
-    if(hit && (bestDist[hit.field]===undefined || hit.dist<bestDist[hit.field])){ out[hit.field]=clampGrade(val); bestDist[hit.field]=hit.dist; }
-  }
+    if(criterioAntes){
+      const words=text.slice(Math.max(0,n.i-30), n.i).match(/[a-z]{3,}/g)||[];   // janela antes do número
+      for(let i=words.length-1;i>=0;i--){ const r=bestFieldFor(words[i]); if(r){ hit=r; break; } } // a mais próxima vence
+    }else{
+      const ate=Math.min(nums[k+1]?nums[k+1].i:text.length, n.fim+40);          // até a próxima nota
+      const words=text.slice(n.fim, ate).match(/[a-z]{3,}/g)||[];
+      for(let i=0;i<words.length;i++){ const r=bestFieldFor(words[i]); if(r){ hit=r; break; } }
+    }
+    if(hit && (bestDist[hit.field]===undefined || hit.dist<bestDist[hit.field])){ out[hit.field]=clampGrade(n.val); bestDist[hit.field]=hit.dist; }
+  });
   return out;
 }
 

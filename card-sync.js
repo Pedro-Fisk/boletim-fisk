@@ -321,10 +321,23 @@
 
   /* ============ ABERTURA PELO CARD (#t=escola|prof|linha) ============ */
   function initFromFragment() {
-    var ref = decodeURIComponent(location.hash.slice(3)).split('|'); // escola|prof|linha
+    /* escola|prof|linha[|linhaCard[|notas]] — os dois últimos vêm do Buddy (Hub), que recolhe as notas na conversa e
+       abre o boletim já no aluno e com o campo "Escreva as notas" preenchido. Nada é lançado por isso: o professor
+       confere o boletim montado e finaliza aqui, como sempre. */
+    var ref = decodeURIComponent(location.hash.slice(3)).split('|');
     setStatus('🔄 Lendo a turma do card…');
     api({ fn: 'turma', escola: ref[0], prof: ref[1], linha: ref[2] })
-      .then(onTurmaLoaded)
+      .then(function (dados) {
+        onTurmaLoaded(dados);
+        if (!ref[3]) return;
+        var alunos = (dados.alunos || []).filter(function (a) { return a && a.nome; }), i = -1;
+        alunos.forEach(function (a, k) { if (String(a.linhaCard) === String(ref[3])) i = k; });
+        var sel = el('selAluno');
+        if (i < 0 || !sel) { setStatus('⚠️ Não achei o aluno indicado nesta turma. Escolha na lista.', 'err'); return; }
+        sel.value = String(i); if (typeof sel.onchange === 'function') sel.onchange();
+        var notas = el('notes');
+        if (ref[4] && notas) { notas.value = ref.slice(4).join('|'); notas.dispatchEvent(new Event('input', { bubbles: true })); }
+      })
       .catch(function (e) { setStatus('⚠️ ' + e.message + ', use a cascata abaixo.', 'err'); initCascade(); });
   }
 
