@@ -624,8 +624,10 @@
     return fiskBuscarNoDrive(opts).then(function (f) {
       return PDFLib.PDFDocument.load(f.bytes).then(function (pdf) {
         var form = pdf.getForm();
-        /* o planner NOVO (v2) não tem formulário: a nota vai por coordenada no quadro da faixa da prova */
-        if (!form.getFields().length && /\bv2\b/.test(String(pdf.getTitle() || ''))) return escreverNoV2(pdf, base, nome, p, av, codigo || stageCodeDoNome(nome));
+        /* o planner NOVO (v2 e v3) não tem formulário: a nota vai por coordenada na tabela das provas do cabeçalho.
+           O "- online.pdf" que a rotina da noite gera é v3; a tabela fica no mesmo lugar do v2 (conferido em
+           08/10/2026 no modelo do Fluency 2). Só com "v2" aqui, o v3 caía no aviso de "não tem tabela de notas". */
+        if (!form.getFields().length && /\bv[23]\b/.test(String(pdf.getTitle() || ''))) return escreverNoV2(pdf, base, nome, p, av, codigo || stageCodeDoNome(nome));
         var escritos = [], faltando = [];
         PLANNER_LINHAS.forEach(function (linha) {
           var v = linha.valor(p);
