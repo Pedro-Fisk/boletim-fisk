@@ -45,10 +45,31 @@
     s.textContent = msg || '';
     s.className = 'status' + (kind ? ' ' + kind : '');
   }
-  function setPush(msg, color) {
+  /* UMA LINHA POR DESTINO (08/10/2026). O status era um texto só: salvar na pasta apagava a linha do card, e o
+     E-counseling não aparecia nem quando falhava. Agora cada destino tem a sua linha e uma não apaga a outra:
+     card, counseling, planner (pode ter mais de uma) e pasta. */
+  var LIN = { card: '', couns: '', planner: [], pasta: '' };
+  function linha(html, color, pequena) {
+    return '<span style="' + (pequena ? 'font-size:12px;' : '') + 'color:' + (color || 'inherit') + '">' + html + '</span>';
+  }
+  function txtSeguro(t) { return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function pintaLinhas() {
     var p = el('cardPushStatus'); if (!p) return;
-    p.textContent = msg || '';
-    p.style.color = color || '';
+    p.style.color = '';
+    p.innerHTML = [LIN.card, LIN.couns].concat(LIN.planner).concat([LIN.pasta]).filter(Boolean).join('<br>');
+  }
+  function setPush(msg, color) {
+    if (!msg) LIN = { card: '', couns: '', planner: [], pasta: '' };
+    else LIN.card = linha(txtSeguro(msg), color);
+    pintaLinhas();
+  }
+  function setPasta(msg, color) { LIN.pasta = msg ? linha(txtSeguro(msg), color, true) : ''; pintaLinhas(); }
+  function counselingTxt(j) {
+    if (!j) return '⚠️ não registrou (sem resposta do servidor ou sem login no Hub)';
+    if (j.ok) return j.jaExistia ? '✓ já estava registrado' : '✓ registrado';
+    if (j.code === 'sem_documento') return '⚠️ o aluno não tem documento de counseling na pasta';
+    if (j.code === 'pasta_nao_encontrada') return '⚠️ pasta do aluno não encontrada';
+    return '⚠️ ' + (j.erro || j.error || 'não registrou');
   }
 
   /* ---- helper de API (mesmo esquema do termo) ---- */
@@ -481,6 +502,7 @@
     var media = finalGrade(p);
     var av = (pk === 'p2') ? 2 : 1;
     var btn = el('cardPushBtn'); if (btn) btn.disabled = true;
+    LIN.couns = ''; LIN.planner = [];
     setPush('⏳ Lançando no card…', '');
     return api({
       fn: 'lancarNota', escola: cardLink.escola, prof: cardLink.prof,
@@ -495,10 +517,14 @@
          uma falha aqui não pode virar "não lancei a nota". O servidor recusa
          linha repetida, então relançar a mesma nota não duplica. */
       if (typeof fiskCounseling === 'function') {
+        LIN.couns = linha('💬 Counseling: ⏳', '#5a6b74', true); pintaLinhas();
         fiskCounseling({
           escola: cardLink.escola, professor: cardLink.prof, turma: cardLink.turma,
           aluno: cardLink.nome, origem: 'nota',
           campos: { avaliacao: String(av), nota: String(media).replace('.', ','), estagio: level }
+        }).then(function (j) {
+          /* a falha continua sem travar nada, mas agora aparece (08/10/2026) */
+          LIN.couns = linha('💬 Counseling: ' + txtSeguro(counselingTxt(j)), j && j.ok ? '#1e8f4e' : '#b8860b', true); pintaLinhas();
         });
       }
       // o card é o registro oficial; o planner é um extra que nunca pode
@@ -569,8 +595,10 @@
   }
 
   function plannerMsg(html, color) {
-    var box = el('cardPushStatus'); if (!box) return;
-    box.innerHTML += '<br><span style="font-size:12px;color:' + (color || '#5a6b74') + '">' + html + '</span>';
+    /* o "Procurando o planner…" é provisório: a linha seguinte entra no lugar dele */
+    if (LIN.planner.length && /🔄/.test(LIN.planner[LIN.planner.length - 1])) LIN.planner.pop();
+    LIN.planner.push(linha(html, color || '#5a6b74', true));
+    pintaLinhas();
   }
 
   function atualizarPlannerNoDrive(p, av, nivel) {
@@ -754,6 +782,9 @@
   }
   window.onPDFGerado = function () {   // script.js chama ao terminar de gerar
     syncDriveBtn();
+    /* UM CLIQUE (Pedro, 08/10/2026): baixar o PDF já salva na pasta do aluno, além de lançar no card, no
+       counseling e no planner. O botão da pasta continua para refazer. */
+    if (cardLink && window.ultimoPDF) salvarNaPasta();
     avisarForaDoCard(window.BOLETIM_DOCUMENTO || 'boletim Jovens/Adultos');
   };
 
@@ -780,9 +811,9 @@
       aluno: cardLink.nome || pdf.aluno,
       filename: pdf.filename, bytes: pdf.bytes
     }).then(function (r) {
-      setPush('✓ Boletim salvo na pasta "' + (r && r.pasta ? r.pasta : cardLink.nome) + '".', '#1e8f4e');
+      setPasta('📁 Pasta: ✓ boletim salvo em "' + (r && r.pasta ? r.pasta : cardLink.nome) + '".', '#1e8f4e');
       mostrarVerPasta(r);
-    }).catch(function () { /* o helper já avisou o professor no alert */ });
+    }).catch(function () { setPasta('📁 Pasta: ⚠️ o boletim NÃO foi salvo. Tente pelo botão.', '#c0392b'); });
   }
 
   /* ============ BUSCAR O BOLETIM DA 1ª AVALIAÇÃO NO DRIVE ============

@@ -261,7 +261,9 @@
       ONDE_ESTAVA = null;
       var a = alunos[+sel.value]; if (!a) return;
       cardLink = { escola: dados.escola, prof: dados.aba, turma: String(dados.turma || '').split('\n')[0],
-                   nome: a.nome, book: a.book, raf: a.raf || '' };
+                   nome: a.nome, book: a.book, raf: a.raf || '',
+                   linhaCard: a.linhaCard, idx: a.ultimaPresencaIdx, n1: String(a.notasAv1 || '').trim(), n2: String(a.notasAv2 || '').trim() };
+      setLinhas(null);
       window.RAF_DO_CARD = String(a.raf || '').trim();
       window.ultimoPDF = null; esconderVerPasta(); syncDriveBtn();
       el('s_name').value = a.nome;
@@ -304,8 +306,80 @@
   }
   window.onPDFGerado = function () {
     syncDriveBtn();
+    registrarTudo();
     avisarForaDoCard('boletim Kids/Teens');
   };
+
+  /* UM CLIQUE, TRÊS LUGARES (Pedro, 08/10/2026). O boletim das crianças não tem nota, então não havia o que lançar
+     e ele ficava só no PDF: a pasta era um botão à parte, e nem o card nem o E-counseling sabiam que ele existia.
+     Agora baixar o PDF:
+       · salva na pasta do aluno;
+       · escreve "Boletim emitido em dd/mm/aaaa" na coluna de notas (a primeira das duas que estiver vazia; o que já
+         está escrito nunca é coberto, só o registro do próprio dia) e anota na célula da aula mais próxima;
+       · registra uma linha no E-counseling.
+     Uma linha de resultado por destino; a falha de um não trava os outros. */
+  var LIN = {}, JA_ANOTOU = {};
+  function txtSeguro(t) { return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function setLinhas(k, msg, cor) {
+    if (!k) LIN = {}; else LIN[k] = '<span style="color:' + (cor || '#5a6b74') + '">' + txtSeguro(msg) + '</span>';
+    var p = el('cardPushStatus'); if (!p) return;
+    p.innerHTML = ['pasta', 'card', 'couns'].map(function (x) { return LIN[x]; }).filter(Boolean).join('<br>');
+  }
+  function counselingTxt(j) {
+    if (!j) return '⚠️ não registrou (sem resposta do servidor ou sem login no Hub)';
+    if (j.ok) return j.jaExistia ? '✓ já estava registrado' : '✓ registrado';
+    if (j.code === 'sem_documento') return '⚠️ o aluno não tem documento de counseling na pasta';
+    if (j.code === 'pasta_nao_encontrada') return '⚠️ pasta do aluno não encontrada';
+    return '⚠️ ' + (j.erro || j.error || 'não registrou');
+  }
+  function hojeBR() { var d = new Date(), p = function (x) { return String(x).padStart(2, '0'); }; return p(d.getDate()) + '/' + p(d.getMonth() + 1) + '/' + d.getFullYear(); }
+  /* em qual das duas colunas escrever: a do registro de hoje (regravar não duplica), senão a primeira vazia */
+  function colunaDoBoletim(n1, n2, marca) {
+    if (n1.indexOf(marca) === 0) return 1;
+    if (n2.indexOf(marca) === 0) return 2;
+    if (!n1) return 1;
+    if (!n2) return 2;
+    return 0;
+  }
+  function registrarTudo() {
+    var L = cardLink, pdf = window.ultimoPDF;
+    if (!L || !pdf) return;
+    setLinhas(null);
+    /* pasta */
+    setLinhas('pasta', '📁 Pasta: ⏳');
+    salvarNaPasta();
+    /* card: a coluna de notas e a anotação na aula */
+    if (L.linhaCard == null) setLinhas('card', '📇 Card: ⚠️ sem a linha do aluno no card, não registrei', '#b8860b');
+    else {
+      var marca = 'Boletim emitido em ' + hojeBR(), av = colunaDoBoletim(L.n1 || '', L.n2 || '', marca);
+      setLinhas('card', '📇 Card: ⏳');
+      var coluna = av ? api({ fn: 'lancarNota', escola: L.escola, prof: L.prof, linhaCard: L.linhaCard, av: av,
+                              texto: marca + ' (qualitativo, sem nota)', mediaBaixa: '0' })
+                          .then(function () { L[av === 1 ? 'n1' : 'n2'] = marca; return 'coluna da ' + av + 'ª avaliação'; })
+                      : Promise.resolve('');
+      var chave = L.escola + '|' + L.prof + '|' + L.linhaCard + '|' + marca;
+      var anot = JA_ANOTOU[chave] ? Promise.resolve('')
+        : api({ fn: 'registrarDoc', escola: L.escola, prof: L.prof, professor: L.prof, linhaCard: L.linhaCard, idx: L.idx, tipo: 'boletim' })
+            .then(function () { JA_ANOTOU[chave] = 1; return 'anotação na aula mais próxima'; });
+      Promise.all([coluna.catch(function (e) { return { erro: e && e.message || 'falhou' }; }),
+                   anot.catch(function (e) { return { erro: e && e.message || 'falhou' }; })]).then(function (r) {
+        var ok = r.filter(function (x) { return typeof x === 'string' && x; }), ruim = r.filter(function (x) { return x && x.erro; });
+        var txt = ok.length ? '✓ ' + ok.join(' e ') : '';
+        if (!av) txt += (txt ? '; ' : '') + 'as duas colunas de notas já têm registro, não escrevi por cima';
+        if (ruim.length) txt += (txt ? '; ' : '') + '⚠️ ' + ruim.map(function (x) { return x.erro; }).join('; ');
+        setLinhas('card', '📇 Card: ' + (txt || '✓ já estava registrado hoje'), ruim.length ? '#b8860b' : '#1e8f4e');
+      });
+    }
+    /* counseling */
+    if (typeof fiskCounseling !== 'function') setLinhas('couns', '💬 Counseling: ⚠️ não carregou, recarregue a página', '#b8860b');
+    else {
+      setLinhas('couns', '💬 Counseling: ⏳');
+      fiskCounseling({ escola: L.escola, professor: L.prof, turma: L.turma, aluno: L.nome, origem: 'manual',
+                       campos: { estagio: (el('s_level') && el('s_level').value) || L.book || '',
+                                 texto: 'Boletim (Report Card) emitido pelo Fisk Hub. Boletim qualitativo, sem nota.' } })
+        .then(function (j) { setLinhas('couns', '💬 Counseling: ' + counselingTxt(j), j && j.ok ? '#1e8f4e' : '#b8860b'); });
+    }
+  }
 
   function mostrarVerPasta(r) {
     var b = el('btnVerPasta'); if (!b) return;
@@ -326,7 +400,8 @@
       escola: cardLink.escola, professor: cardLink.prof, turma: cardLink.turma,
       aluno: cardLink.nome || pdf.aluno,
       filename: pdf.filename, bytes: pdf.bytes
-    }).then(mostrarVerPasta).catch(function () { /* o helper já avisou */ });
+    }).then(function (r) { setLinhas('pasta', '📁 Pasta: ✓ boletim salvo em "' + ((r && r.pasta) || cardLink.nome) + '"', '#1e8f4e'); mostrarVerPasta(r); })
+      .catch(function () { setLinhas('pasta', '📁 Pasta: ⚠️ o boletim NÃO foi salvo. Tente pelo botão.', '#c0392b'); });
   }
 
   /* ---- boot ---- */
