@@ -404,9 +404,28 @@
       .catch(function () { setLinhas('pasta', '📁 Pasta: ⚠️ o boletim NÃO foi salvo. Tente pelo botão.', '#c0392b'); });
   }
 
+  /* #t=escola|prof|linha|linhaCard: o Buddy (Hub) abre o boletim já na turma e no aluno (08/10/2026), como o de
+     jovens e adultos. Nada é gerado por isso: o professor marca as medalhas e a frase aqui. */
+  function initFromFragment() {
+    var ref = decodeURIComponent(location.hash.slice(3)).split('|');
+    setStatus('🔄 Lendo a turma do card…');
+    api({ fn: 'turma', escola: ref[0], prof: ref[1], linha: ref[2] })
+      .then(function (dados) {
+        onTurmaLoaded(dados);
+        if (!ref[3]) return;
+        var alunos = (dados.alunos || []).filter(function (a) { return a && a.nome; }), i = -1;
+        alunos.forEach(function (a, k) { if (String(a.linhaCard) === String(ref[3])) i = k; });
+        var sel = el('selAluno');
+        if (i < 0 || !sel) { setStatus('⚠️ Não achei o aluno indicado nesta turma. Escolha na lista.', 'err'); return; }
+        sel.value = String(i); if (typeof sel.onchange === 'function') sel.onchange();
+      })
+      .catch(function (e) { setStatus('⚠️ ' + e.message + ', escolha a turma abaixo.', 'err'); var eu2 = profDaSessao(); if (eu2) initSessao(eu2); else initCascade(); });
+  }
+
   /* ---- boot ---- */
   var eu = profDaSessao();
-  if (eu) initSessao(eu); else initCascade();
+  if (location.hash.indexOf('#t=') === 0) initFromFragment();
+  else if (eu) initSessao(eu); else initCascade();
   var d = el('btnDrive'); if (d) d.onclick = salvarNaPasta;
   var c = el('confirmClearBtn');
   if (c) c.addEventListener('click', function () {
