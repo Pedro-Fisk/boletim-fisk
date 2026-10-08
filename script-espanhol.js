@@ -125,9 +125,8 @@ renderMedalBoxes();
 const NONTEST_FIELDS=['fluencia','pronunciacion','vocabulario','comportamiento','social','tarea','cyber'];
 $('perfExcelente').addEventListener('change',()=>{
   const on=$('perfExcelente').checked;
-  document.querySelectorAll('.rubric .rg-nt').forEach(el=>el.classList.toggle('dim',on));
   // preenche (ou limpa) os campinhos dos critérios C a J com 10
-  document.querySelectorAll('.rubric .rg-nt .rg-in').forEach(inp=>{ inp.value=on?'10':''; inp.disabled=on; });
+  document.querySelectorAll('.rubric .rg-nt .rg-in').forEach(inp=>{ inp.value=on?'10':''; });   /* os campos continuam editáveis: a nota que o professor trocar prevalece (08/10/2026) */
   if(on){
     medalSel={escucha:'oro',comprende:'oro',gramatica:'oro'};
     chosenScore=10; renderScale(); $('genStatus').textContent='';
@@ -482,7 +481,9 @@ $('generate').onclick=()=>{
   /* a trava do placeholder (card-sync.js, Pedro 15/09/2026): só aluno do card com cronograma da secretaria */
   const trava=window.fiskPodeCriarBoletim?window.fiskPodeCriarBoletim():{ok:false,msg:'A conexão com o card não carregou: recarregue a página.'};
   if(!trava.ok){ const g=$('genStatus'); if(g){ g.textContent=trava.msg; g.className='status err'; } const c=$('cardStatus'); if(c) c.scrollIntoView({behavior:'smooth',block:'center'}); return; }
-  if($('perfExcelente').checked) chosenScore=10;
+  /* "Performance excelente" já escolhe a frase 10 na hora em que é marcada. Aqui ela só vale se o professor não
+     escolheu frase nenhuma: antes forçava a 10 ao gerar e apagava a frase que ele tinha trocado à mão (08/10/2026). */
+  if($('perfExcelente').checked && chosenScore===null) chosenScore=10;
   const base = loadedState ? JSON.parse(JSON.stringify(loadedState)) : {student:{},p1:{},p2:{}};
   base.student=base.student||{};
   base.student.name=$('s_name').value||base.student.name||'';
@@ -491,13 +492,18 @@ $('generate').onclick=()=>{
   base.student.level=$('s_level').value||base.student.level||'';
   base.p1=base.p1||{}; base.p2=base.p2||{};
   const pk=period==='2'?'p2':'p1';
-  Object.assign(base[pk], parseNotes($('notes').value));
+  const ditas=parseNotes($('notes').value), perf=$('perfExcelente').checked;
+  Object.assign(base[pk], ditas);
   // notas digitadas direto no guia têm prioridade sobre o texto livre
   document.querySelectorAll('.rg-in').forEach(inp=>{
     const raw=(inp.value||'').trim().replace(',','.'); if(raw==='')return;
+    /* o 10 automático da Performance excelente não passa por cima da nota que o professor ditou no texto */
+    if(perf && raw==='10' && NONTEST_FIELDS.indexOf(inp.dataset.field)>-1 && ditas[inp.dataset.field]!==undefined) return;
     const v=+raw; if(!isNaN(v)) base[pk][inp.dataset.field]=Math.max(0,Math.min(10,v));
   });
-  if($('perfExcelente').checked){ NONTEST_FIELDS.forEach(f=>{ base[pk][f]=10; }); }
+  /* "Performance excelente" já pôs 10 nos campos quando foi marcada, e eles foram lidos acima. Aqui só completa o
+     que ficou vazio: antes forçava 10 em tudo ao gerar e apagava a nota que o professor tinha trocado (08/10/2026). */
+  if($('perfExcelente').checked){ NONTEST_FIELDS.forEach(f=>{ const inp=document.querySelector('.rg-in[data-field="'+f+'"]'); if((!inp || !(inp.value||'').trim()) && ditas[f]===undefined) base[pk][f]=10; }); }
   /* campos obrigatórios: aluno, professor(a), nivel, todas as notas e a frase de comentário */
   const missing=[];
   if(!(base.student.name||'').trim()) missing.push('nome do aluno');
@@ -692,10 +698,6 @@ function applyFormDraft(d){
   (f.suggestions||[]).forEach(k=>{ const cb=[...document.querySelectorAll('#suggBoxes input')].find(i=>i.value===k); if(cb) cb.checked=true; });
   (f.rubric||[]).forEach(r=>{ const inp=[...document.querySelectorAll('.rg-in')].find(i=>i.dataset.field===r.field); if(inp) inp.value=r.value; });
   $('perfExcelente').checked=!!f.perfExcelente;
-  if(f.perfExcelente){
-    document.querySelectorAll('.rubric .rg-nt').forEach(el=>el.classList.add('dim'));
-    document.querySelectorAll('.rubric .rg-nt .rg-in').forEach(inp=>inp.disabled=true);
-  }
   medalSel=d.medalSel||{escucha:null,comprende:null,gramatica:null}; renderMedalBoxes();
   chosenScore=(d.chosenScore===undefined)?null:d.chosenScore;
   renderScale();

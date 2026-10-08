@@ -294,7 +294,9 @@ updateProgress();
 
 /* ============ GENERATE ============ */
 $('generate').onclick=()=>{
-  if($('perfExcelente').checked) chosenScore=10;
+  /* "Performance excelente" já escolhe a frase 10 na hora em que é marcada. Aqui ela só vale se o professor não
+     escolheu frase nenhuma: antes forçava a 10 ao gerar e apagava a frase que ele tinha trocado à mão (08/10/2026). */
+  if($('perfExcelente').checked && chosenScore===null) chosenScore=10;
   /* campos obrigatórios: aluno, professor(a), estágio, todas as medalhas e a frase de comentário */
   const missing=[];
   if(!($('s_name').value||'').trim()) missing.push('nome do aluno');
