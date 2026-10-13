@@ -22,23 +22,18 @@
   var cardLink = null;   // { escola, prof, linhaCard, book, nome }
 
   /* ── A TRAVA DO PLACEHOLDER (Pedro, 15/09/2026) ──────────────────────────
-     A mesma regra do criador de planners: o boletim só é montado para aluno do card com o cronograma (os
-     placeholders .L1, .L2…) lançado pela secretaria. Sem aluno escolhido, aluno fora do card ("sem vínculo") ou
-     aluno sem placeholder, "Montar boletim" e "Baixar PDF" não andam (script.js pergunta aqui). O `temPlaceholder`
-     vem do fn=turma; resposta sem o campo também trava. */
+     Nasceu como a regra do criador de planners (só aluno com os placeholders lançados pela secretaria). Desde
+     13/10/2026 o placeholder não trava mais (ver abaixo): sem aluno escolhido ou com aluno fora do card
+     ("sem vínculo"), "Montar boletim" e "Baixar PDF" não andam (script.js pergunta aqui). */
   var MSG_TRAVA = {
-    escolha: '🔒 Escolha a turma e o aluno no card. O boletim só é criado para quem já tem o cronograma (os placeholders) lançado pela secretaria.',
-    fora: '🔒 Aluno fora do card não tem cronograma: o boletim não pode ser criado. Avise a secretaria para cadastrar o aluno e lançar os placeholders.',
-    sem: '🔒 Este aluno ainda não tem o cronograma no card (os placeholders da secretaria). O boletim só pode ser criado depois que a secretaria lançar.'
+    escolha: '🔒 Escolha a turma e o aluno no card para montar o boletim.',
+    fora: '🔒 Aluno fora do card não tem linha onde lançar a nota: o boletim não pode ser criado por aqui. Avise a secretaria para cadastrar o aluno no card.'
   };
-  /* QUEM TERMINOU O LIVRO (Pedro, 13/10/2026). O Claudinei não conseguia o boletim da última prova do Fluency 2:
-     a aluna tinha feito o TEST2, então não sobrava NENHUM placeholder na linha, e a trava lia "sem placeholder"
-     como "a secretaria nunca lançou". É o contrário: o cronograma foi cumprido até o fim, e é justamente a hora
-     do boletim final. Sem placeholder, passa quem tem como última lição dada a prova final do livro (TEST2). */
-  function terminouOCronograma(a) {
-    var cod = String((a && a.ultimaLicao) || '').toUpperCase().replace(/\s+/g, '');
-    return !!a && a.temPlaceholder === false && /^TEST2/.test(cod);
-  }
+  /* O PLACEHOLDER DEIXOU DE TRAVAR (Pedro, 13/10/2026). "Quero que o professor consiga fazer o boletim de todo
+     modo, independente do placeholder." A regra de 15/09 barrava o aluno do card sem cronograma, e barrou também
+     quem tinha TERMINADO o livro (feito o TEST2, não sobra placeholder nenhum): o Claudinei acabou fazendo o
+     boletim à mão, fora do gerador, e a nota não foi para o card. Aluno escolhido no card sempre pode. Continuam
+     travados só quem não escolheu aluno e o aluno fora do card ("sem vínculo"), que não tem linha onde lançar. */
   var trava = { ok: false, motivo: 'escolha', msg: MSG_TRAVA.escolha };
   window.fiskPodeCriarBoletim = function () { return trava; };
 
@@ -435,8 +430,7 @@
       setStatus('⚠️ ' + a.nome + 'é do Focus. O curso usa simulados MET, não boletim formal.' +
                 'Você ainda pode lançar, mas confirme com a coordenação.', 'err');
     }
-    trava = (a.temPlaceholder === true || terminouOCronograma(a)) ? { ok: true, motivo: '', msg: '' } : { ok: false, motivo: 'sem', msg: MSG_TRAVA.sem };
-    if (!trava.ok) setStatus(MSG_TRAVA.sem, 'err');
+    trava = { ok: true, motivo: '', msg: '' };
     syncPushBtn();
     buscarFaltasDoEstagio(a, level);
   }

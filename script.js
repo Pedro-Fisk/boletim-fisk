@@ -463,7 +463,7 @@ async function ocrPDF(buf){
 /* ============ GENERATE ============ */
 const GRADE_LABELS={listeningTest:'A escuta',writtenTest:'B escrita',fluency:'C fluência',pronunciation:'D pronúncia',vocabulary:'E vocabulário',participation:'F participação',dedication:'G dedicação',socialization:'H socialização'};
 $('generate').onclick=()=>{
-  /* a trava do placeholder (card-sync.js, Pedro 15/09/2026): só aluno do card com cronograma da secretaria */
+  /* a trava do card (card-sync.js): só com aluno do card escolhido; o placeholder não trava mais desde 13/10/2026 */
   const trava=window.fiskPodeCriarBoletim?window.fiskPodeCriarBoletim():{ok:false,msg:'A conexão com o card não carregou: recarregue a página.'};
   if(!trava.ok){ const g=$('genStatus'); if(g){ g.textContent=trava.msg; g.className='status err'; } const c=$('cardStatus'); if(c) c.scrollIntoView({behavior:'smooth',block:'center'}); return; }
   /* "Performance excelente" já escolhe a frase 10 na hora em que é marcada. Aqui ela só vale se o professor não
