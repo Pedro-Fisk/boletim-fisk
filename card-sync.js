@@ -31,6 +31,14 @@
     fora: '🔒 Aluno fora do card não tem cronograma: o boletim não pode ser criado. Avise a secretaria para cadastrar o aluno e lançar os placeholders.',
     sem: '🔒 Este aluno ainda não tem o cronograma no card (os placeholders da secretaria). O boletim só pode ser criado depois que a secretaria lançar.'
   };
+  /* QUEM TERMINOU O LIVRO (Pedro, 13/10/2026). O Claudinei não conseguia o boletim da última prova do Fluency 2:
+     a aluna tinha feito o TEST2, então não sobrava NENHUM placeholder na linha, e a trava lia "sem placeholder"
+     como "a secretaria nunca lançou". É o contrário: o cronograma foi cumprido até o fim, e é justamente a hora
+     do boletim final. Sem placeholder, passa quem tem como última lição dada a prova final do livro (TEST2). */
+  function terminouOCronograma(a) {
+    var cod = String((a && a.ultimaLicao) || '').toUpperCase().replace(/\s+/g, '');
+    return !!a && a.temPlaceholder === false && /^TEST2/.test(cod);
+  }
   var trava = { ok: false, motivo: 'escolha', msg: MSG_TRAVA.escolha };
   window.fiskPodeCriarBoletim = function () { return trava; };
 
@@ -427,7 +435,7 @@
       setStatus('⚠️ ' + a.nome + 'é do Focus. O curso usa simulados MET, não boletim formal.' +
                 'Você ainda pode lançar, mas confirme com a coordenação.', 'err');
     }
-    trava = a.temPlaceholder === true ? { ok: true, motivo: '', msg: '' } : { ok: false, motivo: 'sem', msg: MSG_TRAVA.sem };
+    trava = (a.temPlaceholder === true || terminouOCronograma(a)) ? { ok: true, motivo: '', msg: '' } : { ok: false, motivo: 'sem', msg: MSG_TRAVA.sem };
     if (!trava.ok) setStatus(MSG_TRAVA.sem, 'err');
     syncPushBtn();
     buscarFaltasDoEstagio(a, level);
