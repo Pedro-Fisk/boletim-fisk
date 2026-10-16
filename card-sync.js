@@ -180,18 +180,26 @@
        PROFESSOR
        prova de escuta: 10
        prova de escrita: 9
+       oral: 9,5
+       participação: 10
        (linha em branco)
        média (com todos os critérios do boletim): 9,8
-     Guarda só o essencial: escuta (A), escrita (B) e a média geral. */
+     Oral e participação entraram em 16/10/2026 (o Claudinei digitava as duas à mão no planner, porque a 1ª coluna
+     da tabela das provas vem desta célula e só tinha escuta e escrita). São os mesmos resultados que a média usa
+     (oralResult/partResult do script da página). Quem lê a célula procura cada rótulo, e a média continua por último. */
   function buildCell(p, level) {
     var escuta = short(p[FIELDS[0]]);   // A = prova de escuta (Listening)
     var escrita = short(p[FIELDS[1]]);  // B = prova de escrita (Written)
+    var oral = typeof oralResult === 'function' ? oralResult(p) : null;
+    var part = typeof partResult === 'function' ? partResult(p) : null;
     var prof = (cardLink && cardLink.prof) || '';
     var dataStr = (p.date && String(p.date).trim()) || hoje();
     return 'Lançamento de nota - ' + dataStr + '\n' +
            (prof ? prof + '\n' : '') +
            'prova de escuta: ' + escuta + '\n' +
-           'prova de escrita: ' + escrita + '\n\n' +
+           'prova de escrita: ' + escrita + '\n' +
+           (oral != null ? 'oral: ' + short(oral) + '\n' : '') +
+           (part != null ? 'participação: ' + short(part) + '\n' : '') + '\n' +
            'média (com todos os critérios do boletim): ' + fmt(finalGrade(p));
   }
 
