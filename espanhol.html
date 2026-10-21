@@ -245,13 +245,24 @@
 
 <div id="preview">
   <div class="toolbar">
-    <button class="btn btn-ghost btn-sm" id="backBtn">↑ Voltar ao formulário</button>
-    <span id="cardPushStatus" style="font-weight:700;font-size:13px"></span>
-    <button class="btn btn-ghost btn-sm" id="cardPushBtn" hidden title="Um clique lança a nota nos quatro lugares">📤 Lançar no card, counseling, planner no portal e planner em PDF</button>
-    <button class="btn btn-ghost btn-sm" id="btnDrive" hidden>📁 Salvar na pasta do aluno</button>
-    <a class="btn btn-ghost btn-sm" id="btnVerPasta" hidden target="_blank" rel="noopener">📂 Ver pasta</a>
-    <span class="grow note">Clique nas notas para ajustar. As médias recalculam sozinhas. Baixe o PDF: ele guarda os dados para reabrir na 2ª avaliação.</span>
-    <button class="btn btn-generate btn-sm" id="pdfBtn">🖨️ Baixar PDF</button>
+    <!-- A BARRA EM GRUPOS (Pedro, 21/10/2026: "organize melhor os botões, estão muito jogados"). Linha de cima: voltar e dica;
+         depois as mensagens; embaixo dois grupos do mesmo tamanho. O botão Solicitar impressão (fisk-hub/assets/fisk-imprimir.js)
+         entra sozinho logo depois do Baixar PDF. -->
+    <div class="tb-linha">
+      <button class="btn btn-ghost btn-sm" id="backBtn">↑ Voltar ao formulário</button>
+      <span class="grow note">Clique nas notas para ajustar. As médias recalculam sozinhas. Baixe o PDF: ele guarda os dados para reabrir na 2ª avaliação.</span>
+    </div>
+    <span id="cardPushStatus" class="tb-status" style="font-weight:700;font-size:13px"></span>
+    <div class="tb-acoes">
+      <div class="tb-grupo"><span class="tb-rot">Papel</span>
+        <button class="btn btn-generate btn-sm" id="pdfBtn">🖨️ Baixar PDF</button>
+      </div>
+      <div class="tb-grupo"><span class="tb-rot">Lançar e guardar</span>
+        <button class="btn btn-ghost btn-sm" id="cardPushBtn" hidden title="Um clique lança a nota nos quatro lugares: card, counseling, planner no portal e planner em PDF">📤 Lançar no card, counseling e planners</button>
+        <button class="btn btn-ghost btn-sm" id="btnDrive" hidden>📁 Salvar na pasta do aluno</button>
+        <a class="btn btn-ghost btn-sm" id="btnVerPasta" hidden target="_blank" rel="noopener">📂 Ver pasta</a>
+      </div>
+    </div>
   </div>
   <div class="sheet-wrap" id="sheetWrap"></div>
 </div>
@@ -271,7 +282,7 @@
 <script src="planner-v2-notas.js"></script>
 <script src="card-sync.js"></script>
 <!-- Central de Impressões, fase 2 (20/10/2026): o botão verde aparece quando o PDF é gerado -->
-<script src="https://pedro-fisk.github.io/fisk-hub/assets/fisk-imprimir.js?v=2026-10-20a"></script>
-<script>if (window.fiskImpressao) fiskImpressao.ligar({ depoisDe: 'btnDrive', origem: 'boletim', rotulo: 'Boletim' });</script>
+<script src="https://pedro-fisk.github.io/fisk-hub/assets/fisk-imprimir.js?v=2026-10-21a"></script>
+<script>if (window.fiskImpressao) fiskImpressao.ligar({ depoisDe: 'pdfBtn', origem: 'boletim', rotulo: 'Boletim', classe: 'btn btn-generate btn-sm' });</script>
 </body>
 </html>
