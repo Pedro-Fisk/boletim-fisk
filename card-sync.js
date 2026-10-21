@@ -413,7 +413,7 @@
        no futuro, localizar os boletins do aluno no Drive sem mexer em permissões */
     window.RAF_DO_CARD = String(a.raf || '').trim();
     /* escola e turma para o botão Solicitar impressão (fisk-hub/assets/fisk-imprimir.js, 20/10/2026) */
-    window.FISK_VINCULO = { escola: cardLink.escola, turma: cardLink.turma, nome: cardLink.nome };
+    window.FISK_VINCULO = { escola: cardLink.escola, turma: cardLink.turma, nome: cardLink.nome, professor: cardLink.prof, linha: cardLink.linhaCard, raf: cardLink.raf || '' };
     window.ultimoPDF = null;   // trocou de aluno: o PDF em memória é do anterior
     esconderVerPasta();
     var hits = el('driveHits'); if (hits) { hits.hidden = true; hits.innerHTML = ''; }

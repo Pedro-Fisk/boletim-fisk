@@ -266,7 +266,7 @@
       setLinhas(null);
       window.RAF_DO_CARD = String(a.raf || '').trim();
     /* escola e turma para o botão Solicitar impressão (fisk-hub/assets/fisk-imprimir.js, 20/10/2026) */
-    window.FISK_VINCULO = { escola: cardLink.escola, turma: cardLink.turma, nome: cardLink.nome };
+    window.FISK_VINCULO = { escola: cardLink.escola, turma: cardLink.turma, nome: cardLink.nome, professor: cardLink.prof, linha: cardLink.linhaCard, raf: cardLink.raf || '' };
       window.ultimoPDF = null; esconderVerPasta(); syncDriveBtn();
       el('s_name').value = a.nome;
       if (a.book) el('s_level').value = a.book;
