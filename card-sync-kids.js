@@ -253,7 +253,7 @@
 
     sel.onchange = function () {
       if (sel.value === '__none__') {
-        cardLink = null; window.RAF_DO_CARD = ''; syncDriveBtn();
+        cardLink = null; window.RAF_DO_CARD = ''; window.FISK_VINCULO = null; syncDriveBtn();
         ONDE_ESTAVA = { escola: dados.escola, prof: dados.aba, turma: String(dados.turma || '').split('\n')[0] };
         setStatus('⚠️ Aluno fora do card: a secretaria será avisada para arrumar o cadastro. Preencha o nome e o estágio à mão.', 'err');
         return;
@@ -265,6 +265,8 @@
                    linhaCard: a.linhaCard, idx: a.ultimaPresencaIdx, n1: String(a.notasAv1 || '').trim(), n2: String(a.notasAv2 || '').trim() };
       setLinhas(null);
       window.RAF_DO_CARD = String(a.raf || '').trim();
+    /* escola e turma para o botão Solicitar impressão (fisk-hub/assets/fisk-imprimir.js, 20/10/2026) */
+    window.FISK_VINCULO = { escola: cardLink.escola, turma: cardLink.turma, nome: cardLink.nome };
       window.ultimoPDF = null; esconderVerPasta(); syncDriveBtn();
       el('s_name').value = a.nome;
       if (a.book) el('s_level').value = a.book;
@@ -429,7 +431,7 @@
   var d = el('btnDrive'); if (d) d.onclick = salvarNaPasta;
   var c = el('confirmClearBtn');
   if (c) c.addEventListener('click', function () {
-    cardLink = null; window.RAF_DO_CARD = ''; window.ultimoPDF = null;
+    cardLink = null; window.RAF_DO_CARD = ''; window.FISK_VINCULO = null; window.ultimoPDF = null;
     esconderVerPasta(); syncDriveBtn();
     var sel = el('selAluno'); if (sel && sel.options.length) sel.selectedIndex = 0;
   });

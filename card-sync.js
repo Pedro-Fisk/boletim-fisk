@@ -391,7 +391,7 @@
 
     sel.onchange = function () {
       if (sel.value === '__none__') {
-        cardLink = null; window.RAF_DO_CARD = ''; syncPushBtn();
+        cardLink = null; window.RAF_DO_CARD = ''; window.FISK_VINCULO = null; syncPushBtn();
         ONDE_ESTAVA = { escola: dados.escola, prof: dados.aba, turma: dados.turma || '' };
         trava = { ok: false, motivo: 'fora', msg: MSG_TRAVA.fora };
         setStatus(MSG_TRAVA.fora, 'err');
@@ -412,6 +412,8 @@
     /* o RAF entra no NOME DO ARQUIVO do PDF (fileBase em script.js) — permite,
        no futuro, localizar os boletins do aluno no Drive sem mexer em permissões */
     window.RAF_DO_CARD = String(a.raf || '').trim();
+    /* escola e turma para o botão Solicitar impressão (fisk-hub/assets/fisk-imprimir.js, 20/10/2026) */
+    window.FISK_VINCULO = { escola: cardLink.escola, turma: cardLink.turma, nome: cardLink.nome };
     window.ultimoPDF = null;   // trocou de aluno: o PDF em memória é do anterior
     esconderVerPasta();
     var hits = el('driveHits'); if (hits) { hits.hidden = true; hits.innerHTML = ''; }
@@ -920,7 +922,7 @@
     var clearBtn = el('confirmClearBtn');
     if (clearBtn) clearBtn.addEventListener('click', function () {
       /* zera também o PDF em memória: ele é de OUTRO aluno a partir daqui */
-      cardLink = null; window.RAF_DO_CARD = ''; window.ultimoPDF = null;
+      cardLink = null; window.RAF_DO_CARD = ''; window.FISK_VINCULO = null; window.ultimoPDF = null;
       esconderVerPasta();
       var h = el('driveHits'); if (h) { h.hidden = true; h.innerHTML = ''; }
       syncPushBtn(); setPush('');
